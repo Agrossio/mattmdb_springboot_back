@@ -34,3 +34,6 @@ build/
 
 ### Envs ###
 src/main/resources/application.properties
+
+### Logs ###
+/logs/archived/

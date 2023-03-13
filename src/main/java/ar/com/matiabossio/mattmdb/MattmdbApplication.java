@@ -24,7 +24,7 @@ public class MattmdbApplication implements CommandLineRunner {
         System.out.println();
         System.out.println("**********************************************************************");
         System.out.println(String.format("*                %s Server listening on port %s :D                 *", config.getVersion(), config.getServerPort()));
-        System.out.println(String.format("*  SERVER URL: http://localhost:%s%s   *", config.getServerPort(), config.getApplicationPath()));
+        System.out.println(String.format("*  SERVER URL: http://localhost:%s%s    *", config.getServerPort(), config.getApplicationPath()));
         System.out.println("**********************************************************************");
     }
 }

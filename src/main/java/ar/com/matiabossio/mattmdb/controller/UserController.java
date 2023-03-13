@@ -1,10 +1,13 @@
 package ar.com.matiabossio.mattmdb.controller;
 
-import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 
+import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
+import ar.com.matiabossio.mattmdb.util.Message;
+import io.swagger.annotations.Api;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +19,17 @@ import java.util.*;
 @CrossOrigin("*")                  // allows requests from all origins
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
+@Slf4j
+@Api
 public class UserController {
-    private IUserMapper userMapper;    // set it as final to force me to add it to the constructor
-    private List<User> users;
-    private List<Media> media;
+    private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
+    private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor
 
     // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(List<User> usersList, IUserMapper userMapper) {
+    public UserController(IUserMapper userMapper, UserServiceImpl userService) {
         this.userMapper = userMapper;
-        this.users = new ArrayList<User>(Arrays
-                .asList(
-                        new User(1, "Matias", "matias@mail.com", "123456", new ArrayList<Media>(Arrays.asList(new Media(1, "tv", new ArrayList<>())))),
-                        new User(2, "Jazmin", "jazmin@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(3, "Victoria", "victoria@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(4, "Mariangeles", "mariangeles@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(5, "Mercedes", "mercedes@mail.com", "123456", new ArrayList<Media>(Arrays.asList()))
-                )
-        );
-        this.media = new ArrayList<Media>(Arrays.asList(
-                new Media(1, "TV", new ArrayList<User>())
-        ));
+
+        this.userService = userService;
     }
 
     /*************************************
@@ -46,7 +40,13 @@ public class UserController {
 
     // ResponseEntity allows us to customize the response
 
-    return ResponseEntity.ok(this.userMapper.entityToDto(this.users));
+    // get a list of users:
+    List<User> usersList = this.userService.getUsersService();
+
+    // get rid of password property in all users:
+    List<UserDTO> userDTOList = this.userMapper.entityToDto(usersList);
+
+    return ResponseEntity.ok(userDTOList);
 
     }
 
@@ -58,52 +58,69 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> createUser (@RequestBody User userFromRequest) {
 
-        Map<String, Object> body = new HashMap<>();
+        // HashMap Message Option:
+        // Map<String, Object> body2 = new HashMap<>();
+
         HttpHeaders headers = new HttpHeaders();
 
-        // to send headers:
+        Message body;
+        User createdUser;
+
+        // example to send headers:
         headers.set("Test Key 1", "Test Value 1");
 
         // Validate if the userFromRequest is empty:
         if (Objects.equals(userFromRequest, new User())) {          // validates if 2 objects are equal
             //  throw new RuntimeException("must provide a user");
 
-            body.put("ok", Boolean.FALSE);
-            body.put("message", "must provide a user");
+          /*
+            // With HashMap
+            body2.put("ok", Boolean.FALSE);
+            body2.put("message", "must provide a user");
+          */
+
+            body = new Message("Sign up", "must provide a user", 400, false);
 
             return ResponseEntity.badRequest().body(body);
 
         }
 
-        if (this.userExists(userFromRequest.getEmail()).isPresent()){
-            //  throw new RuntimeException("User " + userFromRequest.getEmail() + " already exists");
+        try {
 
-            body.put("ok", Boolean.FALSE);
-            body.put("message", String.format("Email %s already in use", userFromRequest.getEmail()));
+            createdUser = this.userService.createUserService(userFromRequest);
+            UserDTO createdUserDTO = this.userMapper.entityToDto(createdUser);
 
-            return ResponseEntity.badRequest().body(body);
+
+            body = new Message("Sign up", String.format("Welcome %s!! We are glad you trust us for saving your favorite movies & tv shows", userFromRequest.getUsername()), 201, true, createdUserDTO);
+
+           /*
+            // with HashMap:
+            body2.put("ok", Boolean.TRUE);
+            body2.put("message", String.format("Welcome %s!! We are glad you trust us for saving your favorite movies & tv shows", userFromRequest.getUsername()));
+            body2.put("title", String.format("Sign up"));
+            body2.put("data", createdUser);
+            body2.put("statusCode", 201);
+           */
+
+            // Headers argument is optional:
+            return new ResponseEntity<>(body, headers, HttpStatus.CREATED);
+
+        } catch (RuntimeException ex) {
+           /*
+            // with HashMap:
+            body2.put("sucess", Boolean.FALSE);
+            body2.put("mensaje", ex.getMessage());
+           */
+
+            // log error:
+            log.error(ex.getMessage());
+
+            body = new Message("Sign up", ex.getMessage(), 409, false);
+
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         }
 
-        this.users.add(userFromRequest);
-        UserDTO createdUser = this.getUserByEmail(userFromRequest);
-
-        body.put("ok", Boolean.TRUE);
-        body.put("message", String.format("Welcome %s!! We are glad you trust us for saving your favorite movies & tv shows", userFromRequest.getUsername()));
-        body.put("title", String.format("Sign up"));
-        body.put("data", createdUser);
-
-        // Headers argument is optional:
-        return new ResponseEntity<>(body, headers, HttpStatus.CREATED);
-
-    }
-
-    private Optional<User> userExists (String email){
-
-        Optional<User> optionalUser = this.users.stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
-
-        return optionalUser;
     }
 
 
@@ -115,19 +132,34 @@ public class UserController {
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity getUserById(@PathVariable(name = "userId") Integer userId) {
 
-    if (userId == null) throw new RuntimeException("must provide a userId");
+        Map<String, Object> body = new HashMap<>();
 
-    User foundUser = this.users.stream()
-            .filter(user -> user.getUserId() == userId)
-            .findFirst()
-            .orElse(new User());
-    /*
-     We use findFirst or findAny when we want to return one object.
-     If we want to return a List we have to use ".collect(Collectors.toList())"
-    */
+        // get the user by id:
+        Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
 
-    return ResponseEntity.ok(this.userMapper.entityToDto(foundUser));
+        // if (userFromRequest == null) throw new RuntimeException("must provide a user");
 
+        if (optionalFoundUser.isEmpty()){
+
+            // throw new RuntimeException("User ID " + userId + " not found");
+
+            body.put("ok", Boolean.FALSE);
+            body.put("message", String.format("User ID %s not found", userId));
+            body.put("statusCode", 404);
+
+
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+
+        } else {
+            User foundUser = optionalFoundUser.get();
+
+            // get rid of password property:
+            UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
+
+            return ResponseEntity.ok(foundUserDTO);
+
+        }
     }
 
 
@@ -135,6 +167,7 @@ public class UserController {
      *  LOGIN   /api/v2/users/login      *
      *************************************/
 
+    /*
     @PostMapping("/login")
     public UserDTO getUserByEmail(@RequestBody User userFromRequest){
 
@@ -152,6 +185,6 @@ public class UserController {
 
     }
 
-
+    */
 
 }
