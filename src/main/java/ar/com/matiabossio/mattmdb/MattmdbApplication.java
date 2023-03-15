@@ -22,9 +22,10 @@ public class MattmdbApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println();
-        System.out.println("**********************************************************************");
-        System.out.println(String.format("*                %s Server listening on port %s :D                 *", config.getVersion(), config.getServerPort()));
-        System.out.println(String.format("*  SERVER URL: http://localhost:%s%s    *", config.getServerPort(), config.getApplicationPath()));
-        System.out.println("**********************************************************************");
+        System.out.println("****************************************************************************************");
+        System.out.println(String.format("*                         %s Server listening on port %s :D                          *", config.getVersion(), config.getServerPort()));
+        System.out.println(String.format("*            SERVER URL: http://localhost:%s%s            *", config.getServerPort(), config.getApplicationPath()));
+        System.out.println("*  API Documentation: http://localhost:8081/mattmdb-1.0-SNAPSHOT/api/v2/swagger-ui/#/  *");
+        System.out.println("****************************************************************************************");
     }
 }

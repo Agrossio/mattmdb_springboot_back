@@ -15,12 +15,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+
+    /*
+        En el controlador se hacen las validaciones de tipo de datos
+        En el servicio las de lógica de negocio.
+
+        Todas las excepciones hay que mandarlas al controlador asi enviamos las bad request.
+
+        Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
+     */
+
 //@CrossOrigin("http://localhost:4200") // allows requests from "http://localhost:4200"
 @CrossOrigin("*")                  // allows requests from all origins
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
 @Slf4j
-@Api
+//@Api
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor

@@ -71,8 +71,8 @@ public class UserServiceImpl implements IUserService{
     }
 
     @Override
-    public Optional<User> updateUserService(User userFromRequest) {
-        return Optional.empty();
+    public User updateUserService(User userFromRequest) {
+        return null;
     }
 
     @Override
