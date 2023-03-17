@@ -2,6 +2,7 @@ package ar.com.matiabossio.mattmdb.service;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,6 +18,6 @@ public interface IMediaService {
     Optional<Media> deleteMediaService(Integer mediaFromRequest);
     boolean mediaExists(int mediaId);
     Page<Media> getMediaPaginated(Pageable pageable);
-    List<Media> getFavorites(User user);
+    List<Media> getFavorites(UserDTO userDTO);
 
 }

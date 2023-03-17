@@ -2,6 +2,7 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.service.IMediaService;
 import ar.com.matiabossio.mattmdb.service.IUserService;
 import ar.com.matiabossio.mattmdb.util.Message;
@@ -89,7 +90,7 @@ public class MediaController {
         // ResponseEntity allows us to customize the response
 
         // Find the user that corresponds to the userId:
-        Optional<User> oFoundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
+        Optional<UserDTO> oFoundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
 
         if (oFoundUser.isEmpty()){
             ResponseEntity.notFound();

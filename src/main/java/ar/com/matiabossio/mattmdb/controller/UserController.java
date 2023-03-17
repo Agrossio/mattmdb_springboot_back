@@ -32,7 +32,7 @@ import java.util.*;
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
 @Slf4j
-@Api(value = "User Controller", tags = "Allowed actios for the User Entity")
+@Api(value = "Allowed actios for the User Entity", tags = "User Controller")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor
@@ -151,7 +151,7 @@ public class UserController {
             Map<String, Object> body = new HashMap<>();
 
             // get the user by id:
-            Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
+            Optional<UserDTO> optionalFoundUser = this.userService.getUserByIdService(userId);
 
             // if (userFromRequest == null) throw new RuntimeException("must provide a user");
 
@@ -168,10 +168,10 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
 
             } else {
-                User foundUser = optionalFoundUser.get();
+                UserDTO foundUserDTO = optionalFoundUser.get();
 
                 // get rid of password property:
-                UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
+                // UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
 
                 return ResponseEntity.ok(foundUserDTO);
 

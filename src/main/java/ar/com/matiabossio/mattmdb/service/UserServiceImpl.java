@@ -1,11 +1,10 @@
 package ar.com.matiabossio.mattmdb.service;
 
-import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
+import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
@@ -16,10 +15,12 @@ import java.util.Optional;
 public class UserServiceImpl implements IUserService{
     // Inject it as "final" to force the ide to add it in the constructor:
     private final IUserRepository userRepository;
+    private  final IUserMapper userMapper;
 
 
-    public UserServiceImpl(IUserRepository userRepository) {
+    public UserServiceImpl(IUserRepository userRepository, IUserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     // OK
@@ -46,18 +47,22 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public Optional<User> getUserByIdService(Integer userId) {
+    public Optional<UserDTO> getUserByIdService(Integer userId) {
 
         if (userId == null) throw new RuntimeException("must provide a userId");
 
-        Optional<User> foundUser = this.userRepository.findById(userId);
+        Optional<User> oFoundUser = this.userRepository.findById(userId);
+
+        UserDTO foundUserDTO = this.userMapper.entityToDto(oFoundUser.get());
+
+        Optional<UserDTO> oFoundUserDTO = Optional.ofNullable(foundUserDTO);
 
     /*
      We use findFirst or findAny when we want to return one object.
      If we want to return a List we have to use ".collect(Collectors.toList())"
     */
 
-        return foundUser;
+        return oFoundUserDTO;
     }
 
     // OK

@@ -1,6 +1,5 @@
 package ar.com.matiabossio.mattmdb.business.dto;
 
-import ar.com.matiabossio.mattmdb.business.domain.Media;
 import lombok.*;
 
 import java.util.List;
@@ -12,6 +11,6 @@ public class UserDTO {
     private Integer userId;
     private String username;
     private String email;
-    private List<Media> favorites;
+    private List<MediaDTO> favorites; // to avoid sending the fans in the response.
 
 }
