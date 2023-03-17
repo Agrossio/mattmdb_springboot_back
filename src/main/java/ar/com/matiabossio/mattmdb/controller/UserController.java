@@ -8,13 +8,14 @@ import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
 import ar.com.matiabossio.mattmdb.util.Message;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-
 
     /*
         En el controlador se hacen las validaciones de tipo de datos
@@ -30,7 +31,7 @@ import java.util.*;
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
 @Slf4j
-//@Api
+@Api
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor
@@ -59,7 +60,6 @@ public class UserController {
     return ResponseEntity.ok(userDTOList);
 
     }
-
 
     /*************************************
      *  REGISTER    /api/v2/users/       *

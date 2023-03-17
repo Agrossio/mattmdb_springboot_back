@@ -4,6 +4,7 @@ import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.controller.UserController;
 import org.mapstruct.Mapper;
+import org.springframework.data.domain.Page;
 
 
 @Mapper(componentModel = "spring")

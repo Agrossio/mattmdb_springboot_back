@@ -2,39 +2,32 @@ package ar.com.matiabossio.mattmdb.service;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
-import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+
+import ar.com.matiabossio.mattmdb.repository.IUserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements IUserService{
+    // Inject it as "final" to force the ide to add it in the constructor:
+    private final IUserRepository userRepository;
 
-    private List<User> users;
-    private List<Media> media;
 
-    public UserServiceImpl() {
-        this.users = new ArrayList<User>(Arrays
-                .asList(
-                        new User(1, "Matias", "matias@mail.com", "123456", new ArrayList<Media>(Arrays.asList(new Media(1, "tv", new ArrayList<>())))),
-                        new User(2, "Jazmin", "jazmin@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(3, "Victoria", "victoria@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(4, "Mariangeles", "mariangeles@mail.com", "123456", new ArrayList<Media>(Arrays.asList())),
-                        new User(5, "Mercedes", "mercedes@mail.com", "123456", new ArrayList<Media>(Arrays.asList()))
-                )
-        );
-        this.media = new ArrayList<Media>(Arrays.asList(
-                new Media(1, "TV", new ArrayList<User>())
-        ));
+    public UserServiceImpl(IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     // OK
     @Override
     public List<User> getUsersService() {
-        return this.users;
+
+        // findAll from the CRUD repository returns an iterable, so I need to cast it:
+        return (List<User>) this.userRepository.findAll();
     }
 
     // OK
@@ -45,9 +38,8 @@ public class UserServiceImpl implements IUserService{
             throw new RuntimeException(String.format("Email %s already in use.", userFromRequest.getEmail()));
         }
 
-        this.users.add(userFromRequest);
-        User createdUser = this.getUserByIdService(userFromRequest.getUserId()).get();
-
+        // save works as saveOrCreate:
+        User createdUser = this.userRepository.save(userFromRequest);
 
         return createdUser;
     }
@@ -58,9 +50,7 @@ public class UserServiceImpl implements IUserService{
 
         if (userId == null) throw new RuntimeException("must provide a userId");
 
-        Optional<User> foundUser = this.users.stream()
-                .filter(user -> user.getUserId() == userId)
-                .findFirst();
+        Optional<User> foundUser = this.userRepository.findById(userId);
 
     /*
      We use findFirst or findAny when we want to return one object.
@@ -70,9 +60,48 @@ public class UserServiceImpl implements IUserService{
         return foundUser;
     }
 
+    // OK
     @Override
-    public User updateUserService(User userFromRequest) {
-        return null;
+    public Optional<User> getUserByEmail(String emailFromRequest) {
+
+        Optional<User> foundUser = this.userRepository.findByEmail(emailFromRequest);
+
+        return foundUser;
+    }
+
+    // OK
+    @Override
+    public boolean userExists(String emailFromRequest) {
+
+        boolean exists = this.userRepository.findByEmail(emailFromRequest).isPresent();
+
+        return exists;
+
+    }
+
+    @Override
+    public User updateUserService(int userId, User userFromRequest) {
+
+        User userToUpdate;
+
+        Optional<User> oFoundUser = this.userRepository.findById(userId);
+
+        if (oFoundUser.isPresent()){
+
+            // save the foundUser into updatedUser (only to get it's userId).
+            userToUpdate = oFoundUser.get();
+            // overwrite the other fields with the info from the request:
+            userToUpdate.setUsername(userFromRequest.getUsername());
+            userToUpdate.setEmail(userFromRequest.getEmail());
+
+        } else {
+            throw new RuntimeException(String.format("User with ID %s doesn't exists.", userId));
+        }
+
+        // Update user in th DB (save works as updateOrCreate).
+        User updatedUser = this.userRepository.save(userToUpdate);
+
+        return updatedUser;
     }
 
     @Override
@@ -85,22 +114,8 @@ public class UserServiceImpl implements IUserService{
         return Optional.empty();
     }
 
-    @Override
-    public boolean userExists(String emailFromRequest) {
-        return this.users.stream()
-                .anyMatch(user -> user.getEmail().equals(emailFromRequest));
-    }
 
-    //Another option:
-    /*
-    private Optional<User> userExists2 (String email){
 
-        Optional<User> optionalUser = this.users.stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
 
-        return optionalUser;
-    }
-    */
 
 }

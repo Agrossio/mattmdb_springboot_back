@@ -1,5 +1,6 @@
 package ar.com.matiabossio.mattmdb.business.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,7 @@ public class User {
     @Column(name = "password", length = 255, nullable = false)
     private String password;
     // @Transient                       // Ignore this field
-    // Relation type. FetchType.LAZY saves us from getting into an infinite loop (in toMany ending relationships) when making a SELECT * (it doesn't bring all media when requesting a User):
+    // Relation type. FetchType.LAZY saves us from getting into an infinite loop (in toMany ending relationships) when making a SELECT * (it doesn't bring all media when requesting a User, it doesn't make the INNER JOIN), it's at JPA level::
     @ManyToMany(
             fetch = FetchType.LAZY
             /*cascade = {                 // Ver Clase de Spring 09/03 1/2 minuto 1:20:00 aprox
@@ -42,5 +43,6 @@ public class User {
             joinColumns = @JoinColumn(name = "id_fan", referencedColumnName = "id_user"),    // FK of the owner of the relationship. I use this 2 properties to change the name of the field in this table. If used as below it will give the name of the column like in the PK of users (id_user)
             // Column from the other entity:
             inverseJoinColumns = @JoinColumn(name = "id_media"))    // FK of the other entity
+    @JsonIgnoreProperties("fans")   // Tell Jackson to ignore "fans" prop to avoid infinite loop when creating the json from the getter (it's at Jackson level when sending the response).
     private List<Media> favorites;
 }
