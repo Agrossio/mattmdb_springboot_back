@@ -24,3 +24,37 @@
 17/mar./2023 12:03:06 INFO org.apache.juli.logging.DirectJDKLog [http-nio-8081-exec-2] Initializing Spring DispatcherServlet 'dispatcherServlet'
 17/mar./2023 12:03:06 INFO org.springframework.web.servlet.FrameworkServlet [http-nio-8081-exec-2] Initializing Servlet 'dispatcherServlet'
 17/mar./2023 12:03:06 INFO org.springframework.web.servlet.FrameworkServlet [http-nio-8081-exec-2] Completed initialization in 2 ms
+17/mar./2023 12:10:09 INFO org.springframework.orm.jpa.AbstractEntityManagerFactoryBean [SpringApplicationShutdownHook] Closing JPA EntityManagerFactory for persistence unit 'default'
+17/mar./2023 12:10:09 INFO com.zaxxer.hikari.HikariDataSource [SpringApplicationShutdownHook] HikariPool-1 - Shutdown initiated...
+17/mar./2023 12:10:09 INFO com.zaxxer.hikari.HikariDataSource [SpringApplicationShutdownHook] HikariPool-1 - Shutdown completed.
+17/mar./2023 12:10:15 INFO org.hibernate.validator.internal.util.Version [background-preinit] HV000001: Hibernate Validator 6.2.5.Final
+17/mar./2023 12:10:15 INFO org.springframework.boot.StartupInfoLogger [main] Starting MattmdbApplication using Java 11.0.18 on NBOOT42 with PID 6304 (C:\Users\mabossio\Desktop\Bootcamp\Proyecto\back\spring\mattmdb\target\classes started by mabossio in C:\Users\mabossio\Desktop\Bootcamp\Proyecto\back\spring\mattmdb)
+17/mar./2023 12:10:15 INFO org.springframework.boot.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+17/mar./2023 12:10:16 INFO org.springframework.data.repository.config.RepositoryConfigurationDelegate [main] Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+17/mar./2023 12:10:16 INFO org.springframework.data.repository.config.RepositoryConfigurationDelegate [main] Finished Spring Data repository scanning in 52 ms. Found 2 JPA repository interfaces.
+17/mar./2023 12:10:16 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [main] Tomcat initialized with port(s): 8081 (http)
+17/mar./2023 12:10:16 INFO org.apache.juli.logging.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8081"]
+17/mar./2023 12:10:16 INFO org.apache.juli.logging.DirectJDKLog [main] Starting service [Tomcat]
+17/mar./2023 12:10:16 INFO org.apache.juli.logging.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/9.0.71]
+17/mar./2023 12:10:17 INFO org.apache.juli.logging.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+17/mar./2023 12:10:17 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1218 ms
+17/mar./2023 12:10:17 INFO org.hibernate.jpa.internal.util.LogHelper [main] HHH000204: Processing PersistenceUnitInfo [name: default]
+17/mar./2023 12:10:17 INFO org.hibernate.Version [main] HHH000412: Hibernate ORM core version 5.6.15.Final
+17/mar./2023 12:10:17 INFO org.hibernate.annotations.common.reflection.java.JavaReflectionManager [main] HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+17/mar./2023 12:10:17 INFO com.zaxxer.hikari.HikariDataSource [main] HikariPool-1 - Starting...
+17/mar./2023 12:10:17 INFO com.zaxxer.hikari.HikariDataSource [main] HikariPool-1 - Start completed.
+17/mar./2023 12:10:17 INFO org.hibernate.dialect.Dialect [main] HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+17/mar./2023 12:10:17 INFO org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator [main] HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+17/mar./2023 12:10:17 INFO org.springframework.orm.jpa.AbstractEntityManagerFactoryBean [main] Initialized JPA EntityManagerFactory for persistence unit 'default'
+17/mar./2023 12:10:18 WARN org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration$JpaWebConfiguration [main] spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+17/mar./2023 12:10:18 INFO org.apache.juli.logging.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8081"]
+17/mar./2023 12:10:18 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [main] Tomcat started on port(s): 8081 (http) with context path '/mattmdb-1.0-SNAPSHOT/api/v2'
+17/mar./2023 12:10:18 INFO org.springframework.boot.StartupInfoLogger [main] Started MattmdbApplication in 3.211 seconds (JVM running for 4.061)
+17/mar./2023 12:10:22 INFO org.apache.juli.logging.DirectJDKLog [http-nio-8081-exec-2] Initializing Spring DispatcherServlet 'dispatcherServlet'
+17/mar./2023 12:10:22 INFO org.springframework.web.servlet.FrameworkServlet [http-nio-8081-exec-2] Initializing Servlet 'dispatcherServlet'
+17/mar./2023 12:10:22 INFO org.springframework.web.servlet.FrameworkServlet [http-nio-8081-exec-2] Completed initialization in 1 ms
+17/mar./2023 02:11:23 WARN org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver [http-nio-8081-exec-6] Resolved [org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'PUT' not supported]
+17/mar./2023 02:14:59 WARN org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver [http-nio-8081-exec-8] Resolved [org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'PUT' not supported]
+17/mar./2023 02:15:25 INFO org.springframework.orm.jpa.AbstractEntityManagerFactoryBean [SpringApplicationShutdownHook] Closing JPA EntityManagerFactory for persistence unit 'default'
+17/mar./2023 02:15:25 INFO com.zaxxer.hikari.HikariDataSource [SpringApplicationShutdownHook] HikariPool-1 - Shutdown initiated...
+17/mar./2023 02:15:25 INFO com.zaxxer.hikari.HikariDataSource [SpringApplicationShutdownHook] HikariPool-1 - Shutdown completed.

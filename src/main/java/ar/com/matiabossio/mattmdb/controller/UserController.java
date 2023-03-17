@@ -7,6 +7,7 @@ import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
 import ar.com.matiabossio.mattmdb.util.Message;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +32,7 @@ import java.util.*;
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
 @Slf4j
-@Api
+@Api(value = "User Controller", tags = "Allowed actios for the User Entity")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor
@@ -47,7 +48,10 @@ public class UserController {
      *            /api/v2/users          *
      *************************************/
 @GetMapping()
+@ApiOperation(value = "Get all Users")
     public ResponseEntity<List<UserDTO>> getUsers() {
+
+    // TODO: The response sends passwords. See how to stop the getter before it gets the users of the media.
 
     // ResponseEntity allows us to customize the response
 
@@ -66,6 +70,7 @@ public class UserController {
      *************************************/
 
     @PostMapping
+    @ApiOperation(value = "Register User")
     public ResponseEntity<?> createUser (@RequestBody User userFromRequest) {
 
         // HashMap Message Option:
@@ -138,38 +143,71 @@ public class UserController {
      *    /api/v2/users/:userId          *
      *************************************/
 
-@GetMapping("/{userId}")
+    @GetMapping("/{userId}")
+    @ApiOperation(value = "Find User by ID")
+        // if path params name equals the argument name we don't need to use name inside @PathVariable
+        public ResponseEntity getUserById(@PathVariable(name = "userId") Integer userId) {
+
+            Map<String, Object> body = new HashMap<>();
+
+            // get the user by id:
+            Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
+
+            // if (userFromRequest == null) throw new RuntimeException("must provide a user");
+
+            if (optionalFoundUser.isEmpty()){
+
+                // throw new RuntimeException("User ID " + userId + " not found");
+
+                body.put("ok", Boolean.FALSE);
+                body.put("message", String.format("User ID %s not found", userId));
+                body.put("statusCode", 404);
+
+
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+
+            } else {
+                User foundUser = optionalFoundUser.get();
+
+                // get rid of password property:
+                UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
+
+                return ResponseEntity.ok(foundUserDTO);
+
+            }
+        }
+
+    /*************************************
+     *  UPDATE  /api/v2/users/:userId    *
+     *************************************/
+
+    @PutMapping("/{userId}")
+    @ApiOperation(value = "Update User")
     // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity getUserById(@PathVariable(name = "userId") Integer userId) {
+    public ResponseEntity updateUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
 
-        Map<String, Object> body = new HashMap<>();
+        User updatedUser;
+        Message body;
 
-        // get the user by id:
-        Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
+        try {
+            updatedUser = this.userService.updateUserService(userId, userFromRequest);
 
-        // if (userFromRequest == null) throw new RuntimeException("must provide a user");
+            UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
-        if (optionalFoundUser.isEmpty()){
+            body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
 
-            // throw new RuntimeException("User ID " + userId + " not found");
+            return ResponseEntity.ok(body);
 
-            body.put("ok", Boolean.FALSE);
-            body.put("message", String.format("User ID %s not found", userId));
-            body.put("statusCode", 404);
+        } catch (RuntimeException ex) {
 
-
+            // log error:
+            log.error(ex.getMessage());
+            body = new Message("Update User", ex.getMessage(), 404, false);
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-
-        } else {
-            User foundUser = optionalFoundUser.get();
-
-            // get rid of password property:
-            UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
-
-            return ResponseEntity.ok(foundUserDTO);
-
         }
+
     }
 
 
@@ -179,6 +217,7 @@ public class UserController {
 
     /*
     @PostMapping("/login")
+    @ApiOperation(value = "Login User")
     public UserDTO getUserByEmail(@RequestBody User userFromRequest){
 
         if (userFromRequest == null) throw new RuntimeException("must provide a user");

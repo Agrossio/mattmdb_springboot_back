@@ -12,7 +12,7 @@ public interface IUserService {
 
     List<User> getUsersService();
     Optional<User> getUserByIdService(Integer userId);
-    Optional<User> getUserByEmail(String emailFromRequest);
+    Optional<User> getUserByEmailService(String emailFromRequest);
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);
     Optional<User> deleteUserService(Integer userIdFromRequest);

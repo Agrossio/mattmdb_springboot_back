@@ -76,14 +76,15 @@ public class MediaController {
     }
 
 
-    /**********************************************
-     *           /api/v2/media/:userId            *
-     **********************************************/
+    /***********************************************
+     *        /api/v2/media/favorites/:userId      *
+     ***********************************************/
 
 
-    @GetMapping("/{userId}")
+    @GetMapping("/favorites/{userId}")
     public ResponseEntity<List<Media>> getFavorites(@PathVariable String userId) {
-        //TODO: Apply Message type to the payload
+        // TODO: Apply Message type to the payload
+        // TODO: The response sends passwords. See how to stop the getter before it gets the users of the media.
 
         // ResponseEntity allows us to customize the response
 

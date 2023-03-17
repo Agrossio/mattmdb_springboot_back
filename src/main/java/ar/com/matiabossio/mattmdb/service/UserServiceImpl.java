@@ -62,7 +62,7 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public Optional<User> getUserByEmail(String emailFromRequest) {
+    public Optional<User> getUserByEmailService(String emailFromRequest) {
 
         Optional<User> foundUser = this.userRepository.findByEmail(emailFromRequest);
 
@@ -79,18 +79,20 @@ public class UserServiceImpl implements IUserService{
 
     }
 
+    // OK
     @Override
     public User updateUserService(int userId, User userFromRequest) {
 
         User userToUpdate;
 
+        // Search user in the DB:
         Optional<User> oFoundUser = this.userRepository.findById(userId);
 
         if (oFoundUser.isPresent()){
 
-            // save the foundUser into updatedUser (only to get it's userId).
+            // Save the foundUser into userToUpdate (only to get it's userId).
             userToUpdate = oFoundUser.get();
-            // overwrite the other fields with the info from the request:
+            // Overwrite the other fields with the info from the request:
             userToUpdate.setUsername(userFromRequest.getUsername());
             userToUpdate.setEmail(userFromRequest.getEmail());
 
