@@ -3,7 +3,9 @@ package ar.com.matiabossio.mattmdb.controller;
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.MediaDTO;
+
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
+
 import ar.com.matiabossio.mattmdb.service.IMediaService;
 import ar.com.matiabossio.mattmdb.service.IUserService;
 import ar.com.matiabossio.mattmdb.util.Message;
@@ -52,14 +54,17 @@ public class MediaController {
      *************************************/
 
     @GetMapping()
-    public ResponseEntity<List<Media>> getMedia() {
+    public ResponseEntity<List<MediaDTO>> getMedia() {
 
         // ResponseEntity allows us to customize the response
 
         // get a list of media:
         List<Media> mediaList = this.mediaService.getMediaService();
 
-        return ResponseEntity.ok(mediaList);
+        List<MediaDTO> mediaDTOList = this.mediaMapper.entityToDto(mediaList);
+
+        // Get rid of fans info:
+        return ResponseEntity.ok(mediaDTOList);
     }
 
     /*************************************

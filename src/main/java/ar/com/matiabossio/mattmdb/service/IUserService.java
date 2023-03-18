@@ -16,8 +16,8 @@ public interface IUserService {
     Optional<User> getUserByEmailService(String emailFromRequest);
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);
-    Optional<User> deleteUserService(Integer userIdFromRequest);
-    Optional<User> loginUserService(User userFromRequest);
+    User deleteUserService(Integer userIdFromRequest, User userFromRequest);
+    User loginUserService(User userFromRequest);
     boolean userExists(String emailFromRequest);
 
 

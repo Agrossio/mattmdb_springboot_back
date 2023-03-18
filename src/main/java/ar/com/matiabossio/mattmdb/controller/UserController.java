@@ -1,5 +1,6 @@
 package ar.com.matiabossio.mattmdb.controller;
 
+import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.*;
 
@@ -106,7 +108,7 @@ public class UserController {
             UserDTO createdUserDTO = this.userMapper.entityToDto(createdUser);
 
 
-            body = new Message("Sign up", String.format("Welcome %s!! We are glad you trust us for saving your favorite movies & tv shows", userFromRequest.getUsername()), 201, true, createdUserDTO);
+            body = new Message("Sign up", String.format("Welcome %s!!", userFromRequest.getUsername()), 201, true, createdUserDTO);
 
            /*
             // with HashMap:
@@ -163,15 +165,14 @@ public class UserController {
                 body.put("message", String.format("User ID %s not found", userId));
                 body.put("statusCode", 404);
 
-
-
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
 
             } else {
-                UserDTO foundUserDTO = this.userMapper.entityToDto(optionalFoundUser.get());
+
+                User foundUser = optionalFoundUser.get();
 
                 // get rid of password property:
-                // UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
+                UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
 
                 return ResponseEntity.ok(foundUserDTO);
 
@@ -199,15 +200,50 @@ public class UserController {
 
             return ResponseEntity.ok(body);
 
-        } catch (RuntimeException ex) {
+        } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.getMessage());
-            body = new Message("Update User", ex.getMessage(), 404, false);
+            log.error(ex.toString());
+            body = new Message("Update User", ex.getMessage(), ex.getStatusCode().value(), false);
 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+            return ResponseEntity.status(ex.getStatusCode()).body(body);
         }
 
+    }
+
+
+    /*************************************
+     * DELETE  /api/v2/users/:userId    *
+     *************************************/
+
+    @DeleteMapping("/{userId}")
+    @ApiOperation(value = "Delete User")
+    // if path params name equals the argument name we don't need to use name inside @PathVariable
+    public ResponseEntity deleteUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
+
+        Message body;
+
+        System.out.println("DELETE BODY ------------------" + userFromRequest);
+
+        try {
+
+            User deletedUser = this.userService.deleteUserService(userId, userFromRequest);
+
+            // Get rid of user password:
+            UserDTO deletedUserDTO = this.userMapper.entityToDto(deletedUser);
+
+            body = new Message("Delete User", String.format("User %s deleted OK", deletedUser.getUsername()), 200, true, deletedUserDTO);
+
+            return ResponseEntity.ok(body);
+
+        } catch (HttpClientErrorException ex) {
+
+            // log error:
+            log.error(ex.toString());
+            body = new Message("Delete User", ex.getMessage(), ex.getStatusCode().value(), false);
+
+            return ResponseEntity.status(ex.getStatusCode()).body(body);
+        }
     }
 
 
@@ -215,25 +251,69 @@ public class UserController {
      *  LOGIN   /api/v2/users/login      *
      *************************************/
 
-    /*
     @PostMapping("/login")
     @ApiOperation(value = "Login User")
-    public UserDTO getUserByEmail(@RequestBody User userFromRequest){
+    public ResponseEntity getUserByEmail(@RequestBody User userFromRequest){
 
-        if (userFromRequest == null) throw new RuntimeException("must provide a user");
+        // userFromRequest only has email & password
 
-        User foundUser = this.users.stream()
-                .filter(user -> user.getEmail().equals(userFromRequest.getEmail()))
-                .findFirst()
-                .orElse(new User());
+        Message body;
 
-        // Use UserDTO to avoid returning the password:
-        UserDTO foundUserDto = this.userMapper.entityToDto(foundUser);
+        try {
 
-        return foundUserDto;
+            User foundUser = this.userService.loginUserService(userFromRequest);
+
+            // Get rid of user password:
+            UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
+
+            body = new Message("Login", String.format("Welcome back %s!!", foundUser.getUsername()), 200, true, foundUserDTO);
+
+            return ResponseEntity.ok(body);
+
+        } catch (HttpClientErrorException ex) {
+
+            // log error:
+            log.error(ex.toString());
+            body = new Message("Login", ex.getMessage(), ex.getStatusCode().value(), false);
+
+            return ResponseEntity.status(ex.getStatusCode()).body(body);
+        }
 
     }
 
+    /**************************************************
+     * ADD FAVORITE  /api/v2/users/favorites/:userId  *
+     **************************************************/
+
+    /*
+    @PostMapping("/favorites/{userId}")
+    @ApiOperation(value = "Update User")
+    // if path params name equals the argument name we don't need to use name inside @PathVariable
+    public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favorite) {
+
+        Message body;
+
+        // HAY QUE EDITAR TODO ESTO PORQUE TOME DE BASE EL UPDATE
+
+        try {
+            updatedUser = this.userService.updateUserService(userId, userFromRequest);
+
+            UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
+
+            body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
+
+            return ResponseEntity.ok(body);
+
+        } catch (HttpClientErrorException ex) {
+
+            // log error:
+            log.error(ex.toString());
+            body = new Message("Update User", ex.getMessage(), ex.getStatusCode().value(), false);
+
+            return ResponseEntity.status(ex.getStatusCode()).body(body);
+        }
+
+    }
     */
 
 }

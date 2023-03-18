@@ -5,7 +5,9 @@ import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 
 import java.util.List;
@@ -52,18 +54,6 @@ public class UserServiceImpl implements IUserService{
         if (userId == null) throw new RuntimeException("must provide a userId");
 
         Optional<User> oFoundUser = this.userRepository.findById(userId);
-        Optional<UserDTO> oFoundUserDTO;
-
-        if (oFoundUser.isPresent()){
-
-            return oFoundUser;
-            //UserDTO foundUserDTO = this.userMapper.entityToDto(oFoundUser.get());
-            //oFoundUserDTO = Optional.ofNullable(foundUserDTO);
-
-
-        } else {
-            oFoundUserDTO = Optional.empty();
-        }
 
         return oFoundUser;
 
@@ -97,24 +87,28 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public User updateUserService(int userId, User userFromRequest) {
+    public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException{
 
         User userToUpdate;
 
         // Search user in the DB:
         Optional<User> oFoundUser = this.userRepository.findById(userId);
 
-        if (oFoundUser.isPresent()){
-
-            // Save the foundUser into userToUpdate (only to get it's userId).
-            userToUpdate = oFoundUser.get();
-            // Overwrite the other fields with the info from the request:
-            userToUpdate.setUsername(userFromRequest.getUsername());
-            userToUpdate.setEmail(userFromRequest.getEmail());
-
-        } else {
-            throw new RuntimeException(String.format("User with ID %s doesn't exists.", userId));
+        if (oFoundUser.isEmpty()){
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userId));
         }
+
+        // Save the foundUser into userToUpdate (to get it's userId & validate password).
+        userToUpdate = oFoundUser.get();
+
+        // If passwords don't match:
+        if (!userToUpdate.getPassword().equals(userFromRequest.getPassword())) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please, check your password.");
+        }
+
+        // Overwrite the other fields with the info from the request:
+        userToUpdate.setUsername(userFromRequest.getUsername());
+        userToUpdate.setEmail(userFromRequest.getEmail());
 
         // Update user in th DB (save works as updateOrCreate).
         User updatedUser = this.userRepository.save(userToUpdate);
@@ -122,18 +116,44 @@ public class UserServiceImpl implements IUserService{
         return updatedUser;
     }
 
+    // OK
     @Override
-    public Optional<User> deleteUserService(Integer userIdFromRequest) {
-        return Optional.empty();
+    public User deleteUserService(Integer userIdFromRequest, User userFromRequest) throws HttpClientErrorException {
+
+       Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
+
+       if (oFoundUser.isEmpty()){
+           throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userIdFromRequest));
+       } else {
+           User foundUser = oFoundUser.get();
+           if (foundUser.getPassword().equals(userFromRequest.getPassword())){
+               this.userRepository.delete(foundUser);
+               return foundUser;
+           } else {
+               throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please, check your password.");
+           }
+       }
+
     }
 
+    // OK
     @Override
-    public Optional<User> loginUserService(User userFromRequest) {
-        return Optional.empty();
+    public User loginUserService(User userFromRequest) throws HttpClientErrorException {
+        // userFromRequest only has email & password
+
+        Optional<User> oFoundUser = this.getUserByEmailService(userFromRequest.getEmail());
+
+        if (oFoundUser.isEmpty()){
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials.");
+        }
+
+        User foundUser = oFoundUser.get();
+
+        if (!foundUser.getPassword().equals(userFromRequest.getPassword())){
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
+        }
+
+        return foundUser;
     }
-
-
-
-
 
 }
