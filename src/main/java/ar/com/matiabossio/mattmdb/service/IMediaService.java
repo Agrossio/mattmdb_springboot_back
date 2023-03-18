@@ -18,6 +18,6 @@ public interface IMediaService {
     Optional<Media> deleteMediaService(Integer mediaFromRequest);
     boolean mediaExists(int mediaId);
     Page<Media> getMediaPaginated(Pageable pageable);
-    List<Media> getFavorites(UserDTO userDTO);
+    List<Media> getFavorites(User user);
 
 }

@@ -35,8 +35,11 @@ public class MediaServiceImpl implements IMediaService{
     }
 
     @Override
-    public List<Media> getFavorites(UserDTO userDTO) {
-        return this.mediaRepository.findMediaByFansContains(userDTO);
+    public List<Media> getFavorites(User user) {
+
+       List<Media> favoritesList = this.mediaRepository.findMediaByFansContains(user);
+
+        return favoritesList;
     }
 
     // OK

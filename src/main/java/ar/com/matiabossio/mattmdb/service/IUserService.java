@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface IUserService {
 
     List<User> getUsersService();
-    Optional<UserDTO> getUserByIdService(Integer userId);
+    Optional<User> getUserByIdService(Integer userId);
     Optional<User> getUserByEmailService(String emailFromRequest);
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);

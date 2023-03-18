@@ -151,7 +151,7 @@ public class UserController {
             Map<String, Object> body = new HashMap<>();
 
             // get the user by id:
-            Optional<UserDTO> optionalFoundUser = this.userService.getUserByIdService(userId);
+            Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
 
             // if (userFromRequest == null) throw new RuntimeException("must provide a user");
 
@@ -168,7 +168,7 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
 
             } else {
-                UserDTO foundUserDTO = optionalFoundUser.get();
+                UserDTO foundUserDTO = this.userMapper.entityToDto(optionalFoundUser.get());
 
                 // get rid of password property:
                 // UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);

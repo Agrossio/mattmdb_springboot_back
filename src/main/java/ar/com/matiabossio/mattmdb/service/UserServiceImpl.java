@@ -47,22 +47,33 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public Optional<UserDTO> getUserByIdService(Integer userId) {
+    public Optional<User> getUserByIdService(Integer userId) {
 
         if (userId == null) throw new RuntimeException("must provide a userId");
 
         Optional<User> oFoundUser = this.userRepository.findById(userId);
+        Optional<UserDTO> oFoundUserDTO;
 
-        UserDTO foundUserDTO = this.userMapper.entityToDto(oFoundUser.get());
+        if (oFoundUser.isPresent()){
 
-        Optional<UserDTO> oFoundUserDTO = Optional.ofNullable(foundUserDTO);
+            return oFoundUser;
+            //UserDTO foundUserDTO = this.userMapper.entityToDto(oFoundUser.get());
+            //oFoundUserDTO = Optional.ofNullable(foundUserDTO);
+
+
+        } else {
+            oFoundUserDTO = Optional.empty();
+        }
+
+        return oFoundUser;
+
 
     /*
      We use findFirst or findAny when we want to return one object.
      If we want to return a List we have to use ".collect(Collectors.toList())"
     */
 
-        return oFoundUserDTO;
+
     }
 
     // OK

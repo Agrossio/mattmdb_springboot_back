@@ -16,6 +16,6 @@ import java.util.List;
  ****************************************************************************************************/
 public interface IMediaRepository extends PagingAndSortingRepository<Media, Integer> {
 
-     List<Media> findMediaByFansContains(UserDTO fanIdDTO);
+     List<Media> findMediaByFansContains(User fan);
 
 }

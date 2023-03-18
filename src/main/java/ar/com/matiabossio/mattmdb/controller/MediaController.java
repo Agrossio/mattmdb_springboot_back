@@ -2,7 +2,8 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
-import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.MediaDTO;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
 import ar.com.matiabossio.mattmdb.service.IMediaService;
 import ar.com.matiabossio.mattmdb.service.IUserService;
 import ar.com.matiabossio.mattmdb.util.Message;
@@ -37,11 +38,13 @@ import java.util.Optional;
 public class MediaController {
     private final IMediaService mediaService;
     private final IUserService userService;
+    private final IMediaMapper mediaMapper;
 
 
-    public MediaController(IMediaService mediaService, IUserService userService) {
+    public MediaController(IMediaService mediaService, IUserService userService, IMediaMapper mediaMapper) {
         this.mediaService = mediaService;
         this.userService = userService;
+        this.mediaMapper = mediaMapper;
     }
 
     /*************************************
@@ -83,23 +86,24 @@ public class MediaController {
 
 
     @GetMapping("/favorites/{userId}")
-    public ResponseEntity<List<Media>> getFavorites(@PathVariable String userId) {
+    public ResponseEntity<List<MediaDTO>> getFavorites(@PathVariable String userId) {
         // TODO: Apply Message type to the payload
-        // TODO: The response sends passwords. See how to stop the getter before it gets the users of the media.
 
         // ResponseEntity allows us to customize the response
 
         // Find the user that corresponds to the userId:
-        Optional<UserDTO> oFoundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
+        Optional<User> oFoundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
 
         if (oFoundUser.isEmpty()){
-            ResponseEntity.notFound();
+           return ResponseEntity.notFound().build();
         }
 
         // get a list of favorites:
         List<Media> mediaPage = this.mediaService.getFavorites(oFoundUser.get());
 
-        return ResponseEntity.ok(mediaPage);
+        List<MediaDTO> mediaPageDTO = this.mediaMapper.entityToDto(mediaPage);
+
+        return ResponseEntity.ok(mediaPageDTO);
 
     }
 
