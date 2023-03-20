@@ -2,7 +2,9 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.MediaDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 
 import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
@@ -10,8 +12,6 @@ import ar.com.matiabossio.mattmdb.util.Message;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ import java.util.*;
 
         Todas las excepciones hay que mandarlas al controlador asi enviamos las bad request.
 
-        Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
+        Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
      */
 
 //@CrossOrigin("http://localhost:4200") // allows requests from "http://localhost:4200"
@@ -37,13 +37,14 @@ import java.util.*;
 @Api(value = "Allowed actios for the User Entity", tags = "User Controller")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
-    private final UserServiceImpl userService;  // with "final" it forces us to initialize it in the constructor
+    private final UserServiceImpl userService;
+    private final IMediaMapper mediaMapper;
 
     // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(IUserMapper userMapper, UserServiceImpl userService) {
+    public UserController(IUserMapper userMapper, UserServiceImpl userService, IMediaMapper mediaMapper) {
         this.userMapper = userMapper;
-
         this.userService = userService;
+        this.mediaMapper = mediaMapper;
     }
 
     /*************************************
@@ -285,22 +286,21 @@ public class UserController {
      * ADD FAVORITE  /api/v2/users/favorites/:userId  *
      **************************************************/
 
-    /*
     @PostMapping("/favorites/{userId}")
-    @ApiOperation(value = "Update User")
+    @ApiOperation(value = "Add to favorites")
     // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favorite) {
+    public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
 
         Message body;
 
-        // HAY QUE EDITAR TODO ESTO PORQUE TOME DE BASE EL UPDATE
-
         try {
-            updatedUser = this.userService.updateUserService(userId, userFromRequest);
+            User updatedUser = this.userService.addTofavorites(userId, favoriteFromRequest);
 
+            // Get rid of fan info:
             UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
-            body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
+            // TODO: change media id with media title
+            body = new Message("Add Favorite", String.format("Media %s added to your favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
 
             return ResponseEntity.ok(body);
 
@@ -308,12 +308,45 @@ public class UserController {
 
             // log error:
             log.error(ex.toString());
-            body = new Message("Update User", ex.getMessage(), ex.getStatusCode().value(), false);
+            body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
         }
 
     }
-    */
+
+
+    /*****************************************************
+     * DELETE FAVORITE  /api/v2/users/favorites/:userId  *
+     *****************************************************/
+
+    @PostMapping("/remove-favorites/{userId}")
+    @ApiOperation(value = "Remove from favorites")
+    // if path params name equals the argument name we don't need to use name inside @PathVariable
+    public ResponseEntity removeFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
+
+        Message body;
+
+        try {
+            User updatedUser = this.userService.removeFromFavorites(userId, favoriteFromRequest);
+
+            // Get rid of fan info:
+            UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
+
+            // TODO: change media id with media title
+            body = new Message("Remove Favorite", String.format("Media %s removed from your favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+
+            return ResponseEntity.ok(body);
+
+        } catch (HttpClientErrorException ex) {
+
+            // log error:
+            log.error(ex.toString());
+            body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
+
+            return ResponseEntity.status(ex.getStatusCode()).body(body);
+        }
+
+    }
 
 }

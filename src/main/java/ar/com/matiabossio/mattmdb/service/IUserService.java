@@ -18,6 +18,8 @@ public interface IUserService {
     User updateUserService(int userId, User userFromRequest);
     User deleteUserService(Integer userIdFromRequest, User userFromRequest);
     User loginUserService(User userFromRequest);
+    User addTofavorites(int userId, Media favorite);
+    User removeFromFavorites(int userId, Media favorite);
     boolean userExists(String emailFromRequest);
 
 

@@ -1,15 +1,17 @@
 package ar.com.matiabossio.mattmdb.service;
 
+import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
-import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
+import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 
+import java.sql.SQLDataException;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,11 +20,13 @@ public class UserServiceImpl implements IUserService{
     // Inject it as "final" to force the ide to add it in the constructor:
     private final IUserRepository userRepository;
     private  final IUserMapper userMapper;
+    private final IMediaRepository mediaRepository;
 
 
-    public UserServiceImpl(IUserRepository userRepository, IUserMapper userMapper) {
+    public UserServiceImpl(IUserRepository userRepository, IUserMapper userMapper, IMediaRepository mediaRepository) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.mediaRepository = mediaRepository;
     }
 
     // OK
@@ -108,7 +112,11 @@ public class UserServiceImpl implements IUserService{
 
         // Overwrite the other fields with the info from the request:
         userToUpdate.setUsername(userFromRequest.getUsername());
-        userToUpdate.setEmail(userFromRequest.getEmail());
+        userToUpdate.setFavorites(userFromRequest.getFavorites());
+
+        // For now, I don't want to be able to update email & password:
+        // userToUpdate.setEmail(userFromRequest.getEmail());
+        // userToUpdate.setPassword(userFromRequest.getPassword());
 
         // Update user in th DB (save works as updateOrCreate).
         User updatedUser = this.userRepository.save(userToUpdate);
@@ -155,5 +163,101 @@ public class UserServiceImpl implements IUserService{
 
         return foundUser;
     }
+
+    @Override
+    public User addTofavorites(int userId, Media favorite) {
+
+            Optional<User> oFoundUser = this.userRepository.findById(userId);
+            Optional<Media> oFavoriteToAdd = this.mediaRepository.findById(favorite.getMediaId());
+            User updatedUser;
+
+            if (oFoundUser.isEmpty()) {
+                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
+            }
+
+            User foundUser = oFoundUser.get();
+
+            // TODO validate token previous to this:
+
+            // If the media is not in the media Table, add it to the DB:
+            if (oFavoriteToAdd.isEmpty()) {
+                this.mediaRepository.save(favorite);
+            }
+
+            List<Media> favoritesList = foundUser.getFavorites();
+
+            // cuando quiero usar la favoritesList entra en loop
+            // System.out.println("FAVORITOS" + favoritesList);
+
+            // Check if this media is already a favorite of the user:
+           // boolean isFavorite = favoritesList.contains(favorite);
+
+            boolean isFavorite = false;
+
+            for (Media media : favoritesList){
+
+               isFavorite = media.getMediaId() == favorite.getMediaId();
+            }
+
+
+           // boolean added = !isFavorite ? favoritesList.add(favorite) : favoritesList.remove(favorite);
+
+           // System.out.println("ADDED FAVORITE? ----> " + added);
+
+            if (!isFavorite) {
+
+                // add favorite to the User instance
+                boolean bandera = favoritesList.add(favorite);
+                System.out.println("ADD ----------" + bandera);
+
+            } else {
+
+                // remove favorite from the User instance
+                boolean bandera = favoritesList.remove(favorite);
+                System.out.println("REMOVE ----------" + bandera);
+            }
+
+        //foundUser.setFavorites(favoritesList); // si hago esto entra en loop infinito
+
+        // update user in DB:
+        updatedUser = userRepository.save(foundUser);
+
+        return updatedUser;
+    }
+
+    @Override
+    public User removeFromFavorites(int userId, Media favorite) {
+
+        Optional<User> oFoundUser = this.userRepository.findById(userId);
+
+        User updatedUser;
+
+        if (oFoundUser.isEmpty()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
+        }
+
+        User foundUser = oFoundUser.get();
+
+        // TODO validate token previous to this:
+
+        List<Media> favoritesList = foundUser.getFavorites();
+
+        // Check if this media is already a favorite of the user:
+        boolean isFavorite = favoritesList.contains(favorite);
+
+
+        // remove favorite from the User instance
+        favoritesList.remove(favorite);
+
+        foundUser.setFavorites(favoritesList);
+
+
+        // update user in DB:
+        updatedUser = userRepository.save(foundUser);
+
+        return updatedUser;
+
+    }
+
 
 }

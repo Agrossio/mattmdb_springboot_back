@@ -30,11 +30,12 @@ public class User {
     // @Transient                       // Ignore this field
     // Relation type. FetchType.LAZY saves us from getting into an infinite loop (in toMany ending relationships) when making a SELECT * (it doesn't bring all media when requesting a User, it doesn't make the INNER JOIN), it's at JPA level::
     @ManyToMany(
-            fetch = FetchType.EAGER
-            /*cascade = {                 // Ver Clase de Spring 09/03 1/2 minuto 1:20:00 aprox
-                    CascadeType.PERSIST,
-                    CascadeType.MERGE
-            }*/
+            fetch = FetchType.LAZY,
+            cascade = {                 // Ver Clase de Spring 09/03 1/2 minuto 1:20:00 aprox
+                    CascadeType.ALL
+                    //CascadeType.PERSIST
+                    //CascadeType.MERGE
+            }
     )
     @JoinTable(                         // Allows us to customize the middle table
             name = "favorites",         // Name of the middle table
