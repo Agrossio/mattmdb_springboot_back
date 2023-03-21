@@ -3,6 +3,7 @@ package ar.com.matiabossio.mattmdb.service;
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
+import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
@@ -184,53 +185,60 @@ public class UserServiceImpl implements IUserService{
                 this.mediaRepository.save(favorite);
             }
 
-            List<Media> favoritesList = foundUser.getFavorites();
-
-            // cuando quiero usar la favoritesList entra en loop
-            // System.out.println("FAVORITOS" + favoritesList);
-
             // Check if this media is already a favorite of the user:
-           // boolean isFavorite = favoritesList.contains(favorite);
 
-            boolean isFavorite = false;
-
-            for (Media media : favoritesList){
-
-               isFavorite = media.getMediaId() == favorite.getMediaId();
-            }
-
-
-           // boolean added = !isFavorite ? favoritesList.add(favorite) : favoritesList.remove(favorite);
-
-           // System.out.println("ADDED FAVORITE? ----> " + added);
+            boolean isFavorite = userRepository.isFavorite(userId, favorite.getMediaId());
 
             if (!isFavorite) {
 
                 // add favorite to the User instance
-                boolean bandera = favoritesList.add(favorite);
-                System.out.println("ADD ----------" + bandera);
+                foundUser.getFavorites().add(favorite);
+
+                // update user in DB:
+                updatedUser = userRepository.save(foundUser);
 
             } else {
 
                 // remove favorite from the User instance
-                boolean bandera = favoritesList.remove(favorite);
-                System.out.println("REMOVE ----------" + bandera);
+                boolean bandera = foundUser.getFavorites().remove(oFavoriteToAdd.get());
+
+                // update user in DB:
+                updatedUser = userRepository.save(foundUser);
+
             }
 
-        //foundUser.setFavorites(favoritesList); // si hago esto entra en loop infinito
-
-        // update user in DB:
-        updatedUser = userRepository.save(foundUser);
-
-        return updatedUser;
+            return updatedUser;
     }
 
     @Override
-    public User removeFromFavorites(int userId, Media favorite) {
+    public int countFavorites(int userId) {
 
         Optional<User> oFoundUser = this.userRepository.findById(userId);
 
-        User updatedUser;
+        if (oFoundUser.isEmpty()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
+        }
+
+        return oFoundUser.get().getFavorites().size();
+
+    }
+
+    @Override
+    public void removeFromFavorites(int userId, Media favorite) {
+
+        Optional<User> oFoundUser = this.userRepository.findById(userId);
+        Optional<Media> oFoundMedia = this.mediaRepository.findById(favorite.getMediaId());
+
+        if (oFoundUser.isPresent() && oFoundMedia.isPresent()) {
+            boolean contienePelicula = oFoundUser.get().getFavorites().contains(oFoundMedia.get());
+            if (contienePelicula) {
+                User user = oFoundUser.get();
+                user.getFavorites().remove(oFoundMedia.get());
+                userRepository.save(user);
+            }
+        }
+
+        /*User updatedUser;
 
         if (oFoundUser.isEmpty()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
@@ -256,7 +264,7 @@ public class UserServiceImpl implements IUserService{
         updatedUser = userRepository.save(foundUser);
 
         return updatedUser;
-
+*/
     }
 
 

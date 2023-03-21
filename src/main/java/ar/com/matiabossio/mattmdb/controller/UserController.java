@@ -283,7 +283,7 @@ public class UserController {
     }
 
     /**************************************************
-     * ADD FAVORITE  /api/v2/users/favorites/:userId  *
+     * TOGGLE FAVORITE  /api/v2/users/favorites/:userId  *
      **************************************************/
 
     @PostMapping("/favorites/{userId}")
@@ -294,15 +294,36 @@ public class UserController {
         Message body;
 
         try {
+
+            // Count favorite quantity:
+            int preFavoriteCount = this.userService.countFavorites(userId);
+
             User updatedUser = this.userService.addTofavorites(userId, favoriteFromRequest);
+
+            // Count new favorite quantity:
+            int afterFavoriteCount = (int) updatedUser.getFavorites().stream().count();
 
             // Get rid of fan info:
             UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
-            // TODO: change media id with media title
-            body = new Message("Add Favorite", String.format("Media %s added to your favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+            // Added favorite message:
+            if (preFavoriteCount < afterFavoriteCount) {
 
-            return ResponseEntity.ok(body);
+                // TODO: change media id with media title
+                body = new Message("Add Favorite", String.format("Media %s added to your favorites", favoriteFromRequest.getMediaId()), 201, true, updatedUserDTO);
+
+                return ResponseEntity.status(HttpStatus.CREATED).body(body);
+
+            } else {
+
+            // Removed favorite message:
+
+                // TODO: change media id with media title
+                body = new Message("Remove Favorite", String.format("Media %s removed from favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+
+                return ResponseEntity.ok(body);
+            }
+
 
         } catch (HttpClientErrorException ex) {
 
@@ -328,13 +349,13 @@ public class UserController {
         Message body;
 
         try {
-            User updatedUser = this.userService.removeFromFavorites(userId, favoriteFromRequest);
+            this.userService.removeFromFavorites(userId, favoriteFromRequest);
 
             // Get rid of fan info:
-            UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
+            //UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
             // TODO: change media id with media title
-            body = new Message("Remove Favorite", String.format("Media %s removed from your favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+            body = new Message("Remove Favorite", String.format("Media %s removed from your favorites", favoriteFromRequest.getMediaId()), 200, true, favoriteFromRequest);
 
             return ResponseEntity.ok(body);
 
