@@ -204,7 +204,7 @@ public class UserController {
         } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.toString());
+            log.error(ex.getMessage());
             body = new Message("Update User", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
@@ -240,7 +240,7 @@ public class UserController {
         } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.toString());
+            log.error(ex.getMessage());
             body = new Message("Delete User", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
@@ -274,7 +274,7 @@ public class UserController {
         } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.toString());
+            log.error(ex.getMessage());
             body = new Message("Login", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
@@ -328,7 +328,7 @@ public class UserController {
         } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.toString());
+            log.error(ex.getMessage());
             body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
@@ -342,7 +342,7 @@ public class UserController {
      *****************************************************/
 
     @PostMapping("/remove-favorites/{userId}")
-    @ApiOperation(value = "Remove from favorites")
+    @ApiOperation(value = "Remove from favorites", hidden = true)
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity removeFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
 
@@ -362,7 +362,7 @@ public class UserController {
         } catch (HttpClientErrorException ex) {
 
             // log error:
-            log.error(ex.toString());
+            log.error(ex.getMessage());
             body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);

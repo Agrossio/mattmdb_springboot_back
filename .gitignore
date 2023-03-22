@@ -33,7 +33,7 @@ build/
 .vscode/
 
 ### Envs ###
-src/main/resources/application.properties
+/src/main/resources/application.properties
 
 ### Logs ###
 /logs/archived/

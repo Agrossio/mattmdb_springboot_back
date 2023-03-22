@@ -1,12 +1,21 @@
 package ar.com.matiabossio.mattmdb.business.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
+
+/*
+More specific Lombok examples:
+@Setter
+@Getter
+@ToString(exclude = {"password"})
+@EqualsAndHashCode(exclude = {
+        "id",
+        "username"
+})
+ */
 
 // JPA
 @Entity                     // to tell JPA that this class is an entity

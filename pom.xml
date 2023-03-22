@@ -45,6 +45,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <!--to use it only en testing environment:-->
             <scope>test</scope>
         </dependency>
 

@@ -1,10 +1,10 @@
 package ar.com.matiabossio.mattmdb.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.stereotype.Component;
 
-
-@Configuration
+@TestConfiguration
 public class Config implements IConfig {
     @Value("${app.version}")
     private String version;
