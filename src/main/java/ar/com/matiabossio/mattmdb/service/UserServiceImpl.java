@@ -223,49 +223,4 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-    @Override
-    public void removeFromFavorites(int userId, Media favorite) {
-
-        Optional<User> oFoundUser = this.userRepository.findById(userId);
-        Optional<Media> oFoundMedia = this.mediaRepository.findById(favorite.getMediaId());
-
-        if (oFoundUser.isPresent() && oFoundMedia.isPresent()) {
-            boolean contienePelicula = oFoundUser.get().getFavorites().contains(oFoundMedia.get());
-            if (contienePelicula) {
-                User user = oFoundUser.get();
-                user.getFavorites().remove(oFoundMedia.get());
-                userRepository.save(user);
-            }
-        }
-
-        /*User updatedUser;
-
-        if (oFoundUser.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
-        }
-
-        User foundUser = oFoundUser.get();
-
-        // TODO validate token previous to this:
-
-        List<Media> favoritesList = foundUser.getFavorites();
-
-        // Check if this media is already a favorite of the user:
-        boolean isFavorite = favoritesList.contains(favorite);
-
-
-        // remove favorite from the User instance
-        favoritesList.remove(favorite);
-
-        foundUser.setFavorites(favoritesList);
-
-
-        // update user in DB:
-        updatedUser = userRepository.save(foundUser);
-
-        return updatedUser;
-*/
-    }
-
-
 }

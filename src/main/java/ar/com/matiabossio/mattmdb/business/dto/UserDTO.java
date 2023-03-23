@@ -1,12 +1,15 @@
 package ar.com.matiabossio.mattmdb.business.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.*;
+
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ApiModel(value = "Response User", description = "User sent in the response to the client")
 public class UserDTO {
     private Integer userId;
     private String username;

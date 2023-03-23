@@ -40,6 +40,15 @@ public class DummyMedia {
         return media3;
     }
 
+    public static Media getNewMedia(){
+        Media newMedia = new Media();
+
+        // newMedia.setMediaId(4);
+        newMedia.setMediaType("movie");
+
+        return newMedia;
+    }
+
 
 
 }

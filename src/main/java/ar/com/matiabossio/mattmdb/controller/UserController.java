@@ -15,9 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import javax.validation.Valid;
 import java.util.*;
 
     /*
@@ -34,7 +36,7 @@ import java.util.*;
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
 @Slf4j
-@Api(value = "Allowed actios for the User Entity", tags = "User Controller")
+@Api(tags = "User Controller", description = "Allowed actios for the User Entity")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final UserServiceImpl userService;
@@ -51,7 +53,7 @@ public class UserController {
      *            /api/v2/users          *
      *************************************/
 @GetMapping()
-@ApiOperation(value = "Get all Users")
+@ApiOperation(value = "Get all Users", notes = "This endpoint lists all the users stored in the database", tags = {"user", "get"})
     public ResponseEntity<List<UserDTO>> getUsers() {
 
     // TODO: The response sends passwords. See how to stop the getter before it gets the users of the media.
@@ -73,8 +75,8 @@ public class UserController {
      *************************************/
 
     @PostMapping
-    @ApiOperation(value = "Register User")
-    public ResponseEntity<?> createUser (@RequestBody User userFromRequest) {
+    @ApiOperation(value = "Register User", notes = "This endpoint creates a new user account.", tags = {"user", "post"})
+    public ResponseEntity<?> createUser (@Valid @RequestBody User userFromRequest, BindingResult result) {
 
         // HashMap Message Option:
         // Map<String, Object> body2 = new HashMap<>();
@@ -131,7 +133,7 @@ public class UserController {
            */
 
             // log error:
-            log.error(ex.getMessage());
+            log.warn(ex.getMessage());
 
             body = new Message("Sign up", ex.getMessage(), 409, false);
 
@@ -147,7 +149,7 @@ public class UserController {
      *************************************/
 
     @GetMapping("/{userId}")
-    @ApiOperation(value = "Find User by ID")
+    @ApiOperation(value = "Find User by ID", notes = "This endpoint searches a user by providing a userId in the url.", tags = {"user", "get"})
         // if path params name equals the argument name we don't need to use name inside @PathVariable
         public ResponseEntity getUserById(@PathVariable(name = "userId") Integer userId) {
 
@@ -185,7 +187,7 @@ public class UserController {
      *************************************/
 
     @PutMapping("/{userId}")
-    @ApiOperation(value = "Update User")
+    @ApiOperation(value = "Update User", notes = "This endpoint updates an existing user by providing the userId in the url and the user to update in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "put"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity updateUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
 
@@ -218,7 +220,7 @@ public class UserController {
      *************************************/
 
     @DeleteMapping("/{userId}")
-    @ApiOperation(value = "Delete User")
+    @ApiOperation(value = "Delete User", notes = "This endpoint deletes an existing user by providing the userId in the url and the user to delete in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "delete"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity deleteUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
 
@@ -253,7 +255,7 @@ public class UserController {
      *************************************/
 
     @PostMapping("/login")
-    @ApiOperation(value = "Login User")
+    @ApiOperation(value = "Login User", notes = "This endpoint returns an existing user by providing the users email and password in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "post"})
     public ResponseEntity getUserByEmail(@RequestBody User userFromRequest){
 
         // userFromRequest only has email & password
@@ -287,7 +289,7 @@ public class UserController {
      **************************************************/
 
     @PostMapping("/favorites/{userId}")
-    @ApiOperation(value = "Add to favorites")
+    @ApiOperation(value = "Add/Remove favorites", notes = "This endpoint toggles a favorite on a users account. If the favorite is not on the user account it will add it to the list, if it's already on the list, then it will remove it", tags = {"user", "toggle", "post", "delete", "favorites"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
 
@@ -333,41 +335,6 @@ public class UserController {
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
         }
-
-    }
-
-
-    /*****************************************************
-     * DELETE FAVORITE  /api/v2/users/favorites/:userId  *
-     *****************************************************/
-
-    @PostMapping("/remove-favorites/{userId}")
-    @ApiOperation(value = "Remove from favorites", hidden = true)
-    // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity removeFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
-
-        Message body;
-
-        try {
-            this.userService.removeFromFavorites(userId, favoriteFromRequest);
-
-            // Get rid of fan info:
-            //UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
-
-            // TODO: change media id with media title
-            body = new Message("Remove Favorite", String.format("Media %s removed from your favorites", favoriteFromRequest.getMediaId()), 200, true, favoriteFromRequest);
-
-            return ResponseEntity.ok(body);
-
-        } catch (HttpClientErrorException ex) {
-
-            // log error:
-            log.error(ex.getMessage());
-            body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
-
-            return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }
-
     }
 
 }

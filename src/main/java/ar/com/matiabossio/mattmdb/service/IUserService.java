@@ -20,7 +20,7 @@ public interface IUserService {
     User loginUserService(User userFromRequest);
     User addTofavorites(int userId, Media favorite);
     int countFavorites(int userId);
-    void removeFromFavorites(int userId, Media favorite);
+    // void removeFromFavorites(int userId, Media favorite);
     boolean userExists(String emailFromRequest);
 
 

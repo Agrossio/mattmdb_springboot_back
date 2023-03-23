@@ -14,6 +14,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
+    Can't start when using IConfig on application, to start them comment "implements
+    CommandLineRunner", IConfig injection and "run" method on MattmdbApplication.java
+ */
+
 @DataJpaTest
 @DisplayName("TESTS: User Repository")
 class IUserRepositoryTest {
@@ -42,6 +47,7 @@ class IUserRepositoryTest {
         User jazmin = DummyUsers.getJazmin();
         jazmin.setFavorites(List.of(media2, media3));
 
+        // Matias & Mariangeles doesn't have favorites:
         userRepository.save(DummyUsers.getMatias());
         userRepository.save(DummyUsers.getMariangeles());
         //userRepository.save(DummyUsers.getJazmin());
@@ -96,6 +102,7 @@ class IUserRepositoryTest {
     void isFavorite() {
         // GIVEN: Give a context to the test
         Integer userIdJazmin = 3;
+        Integer userIdMatias = 1;
         Integer favoriteIdJazmin = 3;
         Integer notFavoriteIdJazmin = 1;
 
@@ -103,7 +110,7 @@ class IUserRepositoryTest {
         // WHEN: When I want to run the test
         boolean isFavoriteJazmin = userRepository.isFavorite(userIdJazmin, favoriteIdJazmin);
         boolean isFavoriteJazmin2 = userRepository.isFavorite(userIdJazmin, notFavoriteIdJazmin);
-        boolean isFavoriteMatias = userRepository.isFavorite(userIdJazmin, notFavoriteIdJazmin);
+        boolean isFavoriteMatias = userRepository.isFavorite(userIdMatias, notFavoriteIdJazmin);
 
         // THEN: Validate that what is happening returns the expected result
         assertThat(isFavoriteJazmin).isTrue();  // it works if tested individualy but not with others

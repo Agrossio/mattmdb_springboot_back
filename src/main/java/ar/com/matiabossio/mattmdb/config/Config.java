@@ -13,8 +13,8 @@ public class Config implements IConfig {
     @Value("${server.servlet.context-path}")
     private String applicationPath;
 
-    public Config() {
-    }
+/*    public Config() {
+    }*/
 
     public String getVersion() {
         return version;

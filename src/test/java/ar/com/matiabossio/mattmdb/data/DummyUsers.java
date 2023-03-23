@@ -7,7 +7,7 @@ public class DummyUsers {
     public static User getMatias(){
         User matias = new User();
 
-        // matias.setUserId(1);
+        matias.setUserId(1);
         matias.setUsername("Matias");
         matias.setEmail("matias@mail.com");
         matias.setPassword("123456Aa");
@@ -19,7 +19,7 @@ public class DummyUsers {
     public static User getMariangeles(){
         User mariangeles = new User();
 
-        // mariangeles.setUserId(2);
+        mariangeles.setUserId(2);
         mariangeles.setUsername("Mariangeles");
         mariangeles.setEmail("mariangeles@mail.com");
         mariangeles.setPassword("123456Aa");
@@ -31,7 +31,7 @@ public class DummyUsers {
     public static User getJazmin(){
         User jazmin = new User();
 
-        // jazmin.setUserId(3);
+        jazmin.setUserId(3);
         jazmin.setUsername("Jazmin");
         jazmin.setEmail("jazmin@mail.com");
         jazmin.setPassword("123456Aa");
@@ -39,6 +39,20 @@ public class DummyUsers {
         return jazmin;
 
     }
+
+    public static User getNotDB(){
+        User notInDb = new User();
+
+        notInDb.setUserId(4);
+        notInDb.setUsername("Not ini DB");
+        notInDb.setEmail("nidb@mail.com");
+        notInDb.setPassword("123456Aa");
+
+        return notInDb;
+
+    }
+
+
 
 
 }

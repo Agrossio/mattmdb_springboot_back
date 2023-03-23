@@ -10,6 +10,7 @@ import ar.com.matiabossio.mattmdb.service.IMediaService;
 import ar.com.matiabossio.mattmdb.service.IUserService;
 import ar.com.matiabossio.mattmdb.util.Message;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,7 @@ import java.util.Optional;
 @RestController                    // makes this class a RestController
 @RequestMapping("/media")       // makes "/users" the root URL for this controller
 @Slf4j
-@Api
+@Api(tags = "Media Controller", description = "Allowed actios for the Media Entity")
 public class MediaController {
     private final IMediaService mediaService;
     private final IUserService userService;
@@ -54,6 +55,7 @@ public class MediaController {
      *************************************/
 
     @GetMapping()
+    @ApiOperation(value = "Get all Media", tags = {"media", "get"})
     public ResponseEntity<List<MediaDTO>> getMedia() {
 
         // ResponseEntity allows us to customize the response
@@ -72,6 +74,7 @@ public class MediaController {
      *************************************/
 
     @GetMapping("/paginated")
+    @ApiOperation(value = "Get all Media Paginated", tags = {"media", "pagination", "get"})
     public ResponseEntity<Page<Media>> getMediaPaginated(Pageable pageable) {
         //TODO: Apply Message type to the payload
 
@@ -91,6 +94,7 @@ public class MediaController {
 
 
     @GetMapping("/favorites/{userId}")
+    @ApiOperation(value = "Get all Favorites from a User", notes = "This endpoint brings all favorites from the userId given in the url.", tags = {"media", "user", "favorites", "get"})
     public ResponseEntity<List<MediaDTO>> getFavorites(@PathVariable String userId) {
         // TODO: Apply Message type to the payload
 
@@ -118,6 +122,7 @@ public class MediaController {
      *************************************/
 
     @PostMapping
+    @ApiOperation(value = "Create Media", notes = "This method creates a media.", tags = {"media", "post"})
     public ResponseEntity<?> createMedia(@RequestBody Media mediaFromRequest) {
 
         Message body;
