@@ -2,9 +2,10 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
-import ar.com.matiabossio.mattmdb.business.dto.MediaDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.RegisterUserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IRegisterUserMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 
 import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
@@ -39,12 +40,14 @@ import java.util.*;
 @Api(tags = "User Controller", description = "Allowed actios for the User Entity")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
+    private final IRegisterUserMapper registerUserMapper;
     private final UserServiceImpl userService;
     private final IMediaMapper mediaMapper;
 
     // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(IUserMapper userMapper, UserServiceImpl userService, IMediaMapper mediaMapper) {
+    public UserController(IUserMapper userMapper, IRegisterUserMapper registerUserMapper, UserServiceImpl userService, IMediaMapper mediaMapper) {
         this.userMapper = userMapper;
+        this.registerUserMapper = registerUserMapper;
         this.userService = userService;
         this.mediaMapper = mediaMapper;
     }
@@ -76,30 +79,27 @@ public class UserController {
 
     @PostMapping
     @ApiOperation(value = "Register User", notes = "This endpoint creates a new user account.", tags = {"user", "post"})
-    public ResponseEntity<?> createUser (@Valid @RequestBody User userFromRequest, BindingResult result) {
-
-        // HashMap Message Option:
-        // Map<String, Object> body2 = new HashMap<>();
-
-        HttpHeaders headers = new HttpHeaders();
+    public ResponseEntity<?> createUser (@Valid @RequestBody RegisterUserDTO registerUserDTO, BindingResult result) {
 
         Message body;
         User createdUser;
 
         // example to send headers:
+        HttpHeaders headers = new HttpHeaders();
         headers.set("Test Key 1", "Test Value 1");
 
-        // Validate if the userFromRequest is empty:
-        if (Objects.equals(userFromRequest, new User())) {          // validates if 2 objects are equal
-            //  throw new RuntimeException("must provide a user");
+        // Validate registerUserDTO:
 
-          /*
-            // With HashMap
-            body2.put("ok", Boolean.FALSE);
-            body2.put("message", "must provide a user");
-          */
+        if (result.hasErrors()){
 
-            body = new Message("Sign up", "must provide a user", 400, false);
+            Map<String, String> validations = new HashMap<>();
+
+            result.getFieldErrors().forEach(validation -> {
+                validations.put(validation.getField(), validation.getDefaultMessage());
+
+            });
+
+            body = new Message("Sign up", "Input Error", 400, false, validations);
 
             return ResponseEntity.badRequest().body(body);
 
@@ -107,36 +107,23 @@ public class UserController {
 
         try {
 
+            User userFromRequest =  registerUserMapper.dtoToEntity(registerUserDTO);
+
             createdUser = this.userService.createUserService(userFromRequest);
             UserDTO createdUserDTO = this.userMapper.entityToDto(createdUser);
 
 
             body = new Message("Sign up", String.format("Welcome %s!!", userFromRequest.getUsername()), 201, true, createdUserDTO);
 
-           /*
-            // with HashMap:
-            body2.put("ok", Boolean.TRUE);
-            body2.put("message", String.format("Welcome %s!! We are glad you trust us for saving your favorite movies & tv shows", userFromRequest.getUsername()));
-            body2.put("title", String.format("Sign up"));
-            body2.put("data", createdUser);
-            body2.put("statusCode", 201);
-           */
-
             // Headers argument is optional:
             return new ResponseEntity<>(body, headers, HttpStatus.CREATED);
 
         } catch (RuntimeException ex) {
-           /*
-            // with HashMap:
-            body2.put("sucess", Boolean.FALSE);
-            body2.put("mensaje", ex.getMessage());
-           */
 
             // log error:
             log.warn(ex.getMessage());
 
             body = new Message("Sign up", ex.getMessage(), 409, false);
-
 
             return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         }
