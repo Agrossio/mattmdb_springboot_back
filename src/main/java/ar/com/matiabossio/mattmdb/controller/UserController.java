@@ -2,10 +2,12 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.ToggleFavoriteDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.RegisterUserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IRegisterUserMapper;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IToggleFavoriteMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 
 import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
@@ -43,13 +45,15 @@ public class UserController {
     private final IRegisterUserMapper registerUserMapper;
     private final UserServiceImpl userService;
     private final IMediaMapper mediaMapper;
+    private final IToggleFavoriteMapper toggleFavoriteMapper;
 
     // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(IUserMapper userMapper, IRegisterUserMapper registerUserMapper, UserServiceImpl userService, IMediaMapper mediaMapper) {
+    public UserController(IUserMapper userMapper, IRegisterUserMapper registerUserMapper, UserServiceImpl userService, IMediaMapper mediaMapper, IToggleFavoriteMapper toggleFavoriteMapper) {
         this.userMapper = userMapper;
         this.registerUserMapper = registerUserMapper;
         this.userService = userService;
         this.mediaMapper = mediaMapper;
+        this.toggleFavoriteMapper = toggleFavoriteMapper;
     }
 
     /*************************************
@@ -278,7 +282,13 @@ public class UserController {
     @PostMapping("/favorites/{userId}")
     @ApiOperation(value = "Add/Remove favorites", notes = "This endpoint toggles a favorite on a users account. If the favorite is not on the user account it will add it to the list, if it's already on the list, then it will remove it", tags = {"user", "toggle", "post", "delete", "favorites"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody Media favoriteFromRequest) {
+    public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody ToggleFavoriteDTO favoriteFromRequestDTO) {
+
+        System.out.println("FAVORITE DTO-------" + favoriteFromRequestDTO);
+
+        Media favoriteFromRequest = this.toggleFavoriteMapper.dtoToEntity(favoriteFromRequestDTO);
+
+        System.out.println("FAVORITE-------" + favoriteFromRequest);
 
         Message body;
 
@@ -299,7 +309,7 @@ public class UserController {
             if (preFavoriteCount < afterFavoriteCount) {
 
                 // TODO: change media id with media title
-                body = new Message("Add Favorite", String.format("Media %s added to your favorites", favoriteFromRequest.getMediaId()), 201, true, updatedUserDTO);
+                body = new Message("Add Favorite", String.format("%s added to your favorites", favoriteFromRequest.getMediaId()), 201, true, updatedUserDTO);
 
                 return ResponseEntity.status(HttpStatus.CREATED).body(body);
 
@@ -308,7 +318,7 @@ public class UserController {
             // Removed favorite message:
 
                 // TODO: change media id with media title
-                body = new Message("Remove Favorite", String.format("Media %s removed from favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+                body = new Message("Remove Favorite", String.format("%s removed from favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
 
                 return ResponseEntity.ok(body);
             }
