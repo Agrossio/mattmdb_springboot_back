@@ -16,7 +16,7 @@ public interface IUserService {
     Optional<User> getUserByEmailService(String emailFromRequest);
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);
-    User deleteUserService(Integer userIdFromRequest, User userFromRequest);
+    void deleteUserService(Integer userIdFromRequest, User userFromRequest);
     User loginUserService(User userFromRequest);
     User addTofavorites(int userId, Media favorite);
     int countFavorites(int userId);

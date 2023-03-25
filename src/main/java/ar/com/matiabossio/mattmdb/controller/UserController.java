@@ -221,12 +221,14 @@ public class UserController {
 
         try {
 
-            User deletedUser = this.userService.deleteUserService(userId, userFromRequest);
+            this.userService.deleteUserService(userId, userFromRequest);
 
             // Get rid of user password:
-            UserDTO deletedUserDTO = this.userMapper.entityToDto(deletedUser);
+            //UserDTO deletedUserDTO = this.userMapper.entityToDto(deletedUser);
 
-            body = new Message("Delete User", String.format("User %s deleted OK", deletedUser.getUsername()), 200, true, deletedUserDTO);
+            userFromRequest.setPassword("");
+
+            body = new Message("Delete User", String.format("User %s deleted OK", userFromRequest.getUsername()), 200, true, userFromRequest);
 
             return ResponseEntity.ok(body);
 
@@ -305,11 +307,12 @@ public class UserController {
             // Get rid of fan info:
             UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
+            String title = favoriteFromRequest.getTitle() == null ? favoriteFromRequest.getName() : favoriteFromRequest.getTitle();
+
             // Added favorite message:
             if (preFavoriteCount < afterFavoriteCount) {
 
-                // TODO: change media id with media title
-                body = new Message("Add Favorite", String.format("%s added to your favorites", favoriteFromRequest.getMediaId()), 201, true, updatedUserDTO);
+                body = new Message("Add Favorite", String.format("%s added to your favorites", title), 201, true, updatedUserDTO);
 
                 return ResponseEntity.status(HttpStatus.CREATED).body(body);
 
@@ -317,8 +320,7 @@ public class UserController {
 
             // Removed favorite message:
 
-                // TODO: change media id with media title
-                body = new Message("Remove Favorite", String.format("%s removed from favorites", favoriteFromRequest.getMediaId()), 200, true, updatedUserDTO);
+                body = new Message("Remove Favorite", String.format("%s removed from favorites", title), 200, true, updatedUserDTO);
 
                 return ResponseEntity.ok(body);
             }

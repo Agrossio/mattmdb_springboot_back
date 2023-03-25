@@ -15,6 +15,6 @@ public class Message {
     @NonNull
     private Integer statusCode;
     @NonNull
-    private Boolean ok;
-    private Object response;
+    private Boolean success;
+    private Object data;
 }

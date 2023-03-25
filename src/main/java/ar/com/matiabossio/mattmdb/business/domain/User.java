@@ -41,9 +41,9 @@ public class User {
     @ManyToMany(
             fetch = FetchType.LAZY,
             cascade = {                 // Ver Clase de Spring 09/03 1/2 minuto 1:20:00 aprox
-                    CascadeType.ALL
-                    //CascadeType.PERSIST
-                    //CascadeType.MERGE
+                    //CascadeType.ALL
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
             }
     )
     @JoinTable(                         // Allows us to customize the middle table

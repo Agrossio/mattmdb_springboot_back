@@ -127,7 +127,7 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public User deleteUserService(Integer userIdFromRequest, User userFromRequest) throws HttpClientErrorException {
+    public void deleteUserService(Integer userIdFromRequest, User userFromRequest) throws HttpClientErrorException {
 
        Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
 
@@ -137,7 +137,6 @@ public class UserServiceImpl implements IUserService{
            User foundUser = oFoundUser.get();
            if (foundUser.getPassword().equals(userFromRequest.getPassword())){
                this.userRepository.delete(foundUser);
-               return foundUser;
            } else {
                throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please, check your password.");
            }
