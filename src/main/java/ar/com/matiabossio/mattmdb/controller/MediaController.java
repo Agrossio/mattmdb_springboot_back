@@ -6,6 +6,7 @@ import ar.com.matiabossio.mattmdb.business.dto.MediaDTO;
 
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
 
+import ar.com.matiabossio.mattmdb.exception.NotFoundException;
 import ar.com.matiabossio.mattmdb.service.IMediaService;
 import ar.com.matiabossio.mattmdb.service.IUserService;
 import ar.com.matiabossio.mattmdb.util.Message;
@@ -95,20 +96,16 @@ public class MediaController {
 
     @GetMapping("/favorites/{userId}")
     @ApiOperation(value = "Get all Favorites from a User", notes = "This endpoint brings all favorites from the userId given in the url.", tags = {"media", "user", "favorites", "get"})
-    public ResponseEntity<List<MediaDTO>> getFavorites(@PathVariable String userId) {
+    public ResponseEntity<List<MediaDTO>> getFavorites(@PathVariable String userId) throws NotFoundException {
         // TODO: Apply Message type to the payload
 
         // ResponseEntity allows us to customize the response
 
         // Find the user that corresponds to the userId:
-        Optional<User> oFoundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
-
-        if (oFoundUser.isEmpty()){
-           return ResponseEntity.notFound().build();
-        }
+        User foundUser = this.userService.getUserByIdService(Integer.valueOf(userId));
 
         // get a list of favorites:
-        List<Media> mediaPage = this.mediaService.getFavorites(oFoundUser.get());
+        List<Media> mediaPage = this.mediaService.getFavorites(foundUser);
 
         List<MediaDTO> mediaPageDTO = this.mediaMapper.entityToDto(mediaPage);
 

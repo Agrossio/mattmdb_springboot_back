@@ -12,11 +12,12 @@ import javax.validation.constraints.*;
 @NoArgsConstructor
 @ApiModel(value = "Request User", description = "User received in the request from the client")
 
-public class RegisterUserDTO {
+public class UserFromRequestDTO {
     private Integer userId;
     @NotBlank(message = "Can't be blank")
     @NotNull(message = "Can't be null")
     @NotEmpty(message = "Can't be empty")
+    @Size(min = 4, message = "Username must have more than 4 characters")
     private String username;
     @NotBlank(message = "Can't be blank")
     @NotNull(message = "Can't be null")
@@ -26,7 +27,7 @@ public class RegisterUserDTO {
     @NotBlank(message = "Can't be blank")
     @NotNull(message = "Can't be null")
     @NotEmpty(message = "Can't be empty")
-    @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$", message = "Your password must have more than 7 characters and have at least one uppercase, one lowercase and one number")
+    @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$", message = "Password must have more than 7 characters and have at least one uppercase, one lowercase and one number")
     private String password;
 
 }

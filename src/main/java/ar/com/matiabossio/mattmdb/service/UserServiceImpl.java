@@ -5,13 +5,16 @@ import ar.com.matiabossio.mattmdb.business.domain.User;
 
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
+import ar.com.matiabossio.mattmdb.exception.NotFoundException;
 import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 
+import javax.transaction.Transactional;
 import java.sql.SQLDataException;
 import java.util.List;
 import java.util.Optional;
@@ -40,10 +43,14 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public User createUserService(User userFromRequest) throws RuntimeException {
+    public User createUserService(User userFromRequest) throws DataIntegrityViolationException {
 
-        if (this.userExists(userFromRequest.getEmail())){
-            throw new RuntimeException(String.format("Email %s already in use.", userFromRequest.getEmail()));
+        if (userExists(userFromRequest.getEmail())){
+            throw new DataIntegrityViolationException(String.format("Email %s already in use.", userFromRequest.getEmail()));
+        }
+
+        if (userExistsUsername(userFromRequest.getUsername())){
+            throw new DataIntegrityViolationException(String.format("Username %s already in use.", userFromRequest.getUsername()));
         }
 
         // save works as saveOrCreate:
@@ -54,13 +61,13 @@ public class UserServiceImpl implements IUserService{
 
     // OK
     @Override
-    public Optional<User> getUserByIdService(Integer userId) {
+    public User getUserByIdService(Integer userId) throws NotFoundException {
 
         if (userId == null) throw new RuntimeException("must provide a userId");
 
-        Optional<User> oFoundUser = this.userRepository.findById(userId);
+        User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
 
-        return oFoundUser;
+        return foundUser;
 
 
     /*
@@ -71,7 +78,7 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-    // OK
+
     @Override
     public Optional<User> getUserByEmailService(String emailFromRequest) {
 
@@ -80,7 +87,7 @@ public class UserServiceImpl implements IUserService{
         return foundUser;
     }
 
-    // OK
+
     @Override
     public boolean userExists(String emailFromRequest) {
 
@@ -90,21 +97,24 @@ public class UserServiceImpl implements IUserService{
 
     }
 
+    public boolean userExistsUsername(String usernameFromRequest) {
+
+        boolean exists = this.userRepository.findUserByUsername(usernameFromRequest).isPresent();
+
+        return exists;
+
+    }
+
+
+
     // OK
     @Override
+    @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
     public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException{
 
-        User userToUpdate;
+        // Search user in the DB (to get it's userId & validate password):
+        User userToUpdate = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userId)));
 
-        // Search user in the DB:
-        Optional<User> oFoundUser = this.userRepository.findById(userId);
-
-        if (oFoundUser.isEmpty()){
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userId));
-        }
-
-        // Save the foundUser into userToUpdate (to get it's userId & validate password).
-        userToUpdate = oFoundUser.get();
 
         // If passwords don't match:
         if (!userToUpdate.getPassword().equals(userFromRequest.getPassword())) {
@@ -125,7 +135,7 @@ public class UserServiceImpl implements IUserService{
         return updatedUser;
     }
 
-    // OK
+
     @Override
     public void deleteUserService(Integer userIdFromRequest, User userFromRequest) throws HttpClientErrorException {
 
@@ -144,7 +154,7 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-    // OK
+
     @Override
     public User loginUserService(User userFromRequest) throws HttpClientErrorException {
         // userFromRequest only has email & password

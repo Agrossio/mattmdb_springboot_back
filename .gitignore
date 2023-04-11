@@ -37,3 +37,6 @@ build/
 
 ### Logs ###
 /logs/archived/
+
+### SSL File ###
+src/main/resources/keypair/keystore.p12

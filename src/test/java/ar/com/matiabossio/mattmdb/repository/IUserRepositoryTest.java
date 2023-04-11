@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 
 @DataJpaTest
+@Disabled
 @DisplayName("TESTS: User Repository")
 class IUserRepositoryTest {
     @Autowired

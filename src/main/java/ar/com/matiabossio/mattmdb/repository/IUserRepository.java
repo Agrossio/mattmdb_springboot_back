@@ -22,9 +22,9 @@ public interface IUserRepository extends JpaRepository <User, Integer> {
     Optional<User> findByEmail(String email);
 
     Optional<User> findUserByEmailAndPassword(String email, String password);
+    Optional<User> findUserByUsername(String username);
 
     @Query("SELECT COUNT(m) > 0 FROM User u JOIN u.favorites m WHERE u.userId = :userId AND m.mediaId = :mediaId")
     boolean isFavorite(@Param("userId") Integer userId, @Param("mediaId") Integer mediaId);
-
 
 }

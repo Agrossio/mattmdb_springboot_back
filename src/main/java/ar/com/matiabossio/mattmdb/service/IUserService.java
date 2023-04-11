@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface IUserService {
 
     List<User> getUsersService();
-    Optional<User> getUserByIdService(Integer userId);
+    User getUserByIdService(Integer userId);
     Optional<User> getUserByEmailService(String emailFromRequest);
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);
@@ -22,6 +22,7 @@ public interface IUserService {
     int countFavorites(int userId);
     // void removeFromFavorites(int userId, Media favorite);
     boolean userExists(String emailFromRequest);
+    boolean userExistsUsername(String emailFromRequest);
 
 
 }

@@ -4,9 +4,9 @@ import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 import ar.com.matiabossio.mattmdb.business.dto.ToggleFavoriteDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
-import ar.com.matiabossio.mattmdb.business.dto.RegisterUserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
-import ar.com.matiabossio.mattmdb.business.dto.mapper.IRegisterUserMapper;
+import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserFromRequestMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IToggleFavoriteMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 
@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -42,15 +43,15 @@ import java.util.*;
 @Api(tags = "User Controller", description = "Allowed actios for the User Entity")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
-    private final IRegisterUserMapper registerUserMapper;
+    private final IUserFromRequestMapper userFromRequestMapper;
     private final UserServiceImpl userService;
     private final IMediaMapper mediaMapper;
     private final IToggleFavoriteMapper toggleFavoriteMapper;
 
     // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(IUserMapper userMapper, IRegisterUserMapper registerUserMapper, UserServiceImpl userService, IMediaMapper mediaMapper, IToggleFavoriteMapper toggleFavoriteMapper) {
+    public UserController(IUserMapper userMapper, IUserFromRequestMapper userFromRequestMapper, UserServiceImpl userService, IMediaMapper mediaMapper, IToggleFavoriteMapper toggleFavoriteMapper) {
         this.userMapper = userMapper;
-        this.registerUserMapper = registerUserMapper;
+        this.userFromRequestMapper = userFromRequestMapper;
         this.userService = userService;
         this.mediaMapper = mediaMapper;
         this.toggleFavoriteMapper = toggleFavoriteMapper;
@@ -83,7 +84,9 @@ public class UserController {
 
     @PostMapping
     @ApiOperation(value = "Register User", notes = "This endpoint creates a new user account.", tags = {"user", "post"})
-    public ResponseEntity<?> createUser (@Valid @RequestBody RegisterUserDTO registerUserDTO, BindingResult result) {
+    public ResponseEntity<?> createUser (@Valid @RequestBody UserFromRequestDTO userFromRequestDTO, BindingResult result) throws MethodArgumentNotValidException, RuntimeException {
+
+        // The way I worked in this method is to know how to do it without using an Exception Handler Class (@ControllerAdvice, @ExceptionHandler) & showing how to send headers
 
         Message body;
         User createdUser;
@@ -92,7 +95,9 @@ public class UserController {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Test Key 1", "Test Value 1");
 
-        // Validate registerUserDTO:
+
+        // Validate userFromRequestDTO:
+        // When using an Exception Handler we don't have to use "BindingResult"
 
         if (result.hasErrors()){
 
@@ -111,7 +116,7 @@ public class UserController {
 
         try {
 
-            User userFromRequest =  registerUserMapper.dtoToEntity(registerUserDTO);
+            User userFromRequest =  userFromRequestMapper.dtoToEntity(userFromRequestDTO);
 
             createdUser = this.userService.createUserService(userFromRequest);
             UserDTO createdUserDTO = this.userMapper.entityToDto(createdUser);
@@ -132,6 +137,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         }
 
+
     }
 
 
@@ -144,34 +150,21 @@ public class UserController {
         // if path params name equals the argument name we don't need to use name inside @PathVariable
         public ResponseEntity getUserById(@PathVariable(name = "userId") Integer userId) {
 
-            Map<String, Object> body = new HashMap<>();
+            Message body;
 
             // get the user by id:
-            Optional<User> optionalFoundUser = this.userService.getUserByIdService(userId);
+            User foundUser = this.userService.getUserByIdService(userId);
 
-            // if (userFromRequest == null) throw new RuntimeException("must provide a user");
+            // get rid of password property:
+            UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
 
-            if (optionalFoundUser.isEmpty()){
 
-                // throw new RuntimeException("User ID " + userId + " not found");
+            body = new Message("Find by id", String.format("User %s found!", userId), 200, true, foundUserDTO);
 
-                body.put("ok", Boolean.FALSE);
-                body.put("message", String.format("User ID %s not found", userId));
-                body.put("statusCode", 404);
+            return ResponseEntity.ok(body);
 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-
-            } else {
-
-                User foundUser = optionalFoundUser.get();
-
-                // get rid of password property:
-                UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
-
-                return ResponseEntity.ok(foundUserDTO);
-
-            }
         }
+
 
     /*************************************
      *  UPDATE  /api/v2/users/:userId    *
@@ -180,32 +173,21 @@ public class UserController {
     @PutMapping("/{userId}")
     @ApiOperation(value = "Update User", notes = "This endpoint updates an existing user by providing the userId in the url and the user to update in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "put"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity updateUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
+    public ResponseEntity updateUser(@PathVariable(name = "userId") Integer userId, @Valid @RequestBody UserFromRequestDTO userFromRequestDTO) throws MethodArgumentNotValidException, RuntimeException, HttpClientErrorException {
 
-        User updatedUser;
-        Message body;
+        User userFromRequest = userFromRequestMapper.dtoToEntity(userFromRequestDTO);
 
-        try {
-            updatedUser = this.userService.updateUserService(userId, userFromRequest);
+            User updatedUser = this.userService.updateUserService(userId, userFromRequest);
 
             UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
-            body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
+            Message body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
 
             return ResponseEntity.ok(body);
 
-        } catch (HttpClientErrorException ex) {
-
-            // log error:
-            log.error(ex.getMessage());
-            body = new Message("Update User", ex.getMessage(), ex.getStatusCode().value(), false);
-
-            return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }
-
     }
 
-
+    // TODO CONTINUE FROM HERE
     /*************************************
      * DELETE  /api/v2/users/:userId    *
      *************************************/
