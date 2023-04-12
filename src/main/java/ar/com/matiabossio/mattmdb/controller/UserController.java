@@ -2,10 +2,7 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
-import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
-import ar.com.matiabossio.mattmdb.business.dto.ToggleFavoriteDTO;
-import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
-import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
+import ar.com.matiabossio.mattmdb.business.dto.*;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IMediaMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserFromRequestMapper;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IToggleFavoriteMapper;
@@ -213,15 +210,15 @@ public class UserController {
 
     @PostMapping("/login")
     @ApiOperation(value = "Login User", notes = "This endpoint returns an existing user by providing the users email and password in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "post"})
-    public ResponseEntity getUserByEmail(@RequestBody User userFromRequest){
+    public ResponseEntity getUserByEmail(@Valid @RequestBody LoginFromRequestDTO loginUserFromRequestDTO){
 
         // userFromRequest only has email & password
 
         Message body;
 
-        try {
+        //try {
 
-            User foundUser = this.userService.loginUserService(userFromRequest);
+            User foundUser = this.userService.loginUserService(loginUserFromRequestDTO);
 
             // Get rid of user password:
             UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
@@ -230,14 +227,14 @@ public class UserController {
 
             return ResponseEntity.ok(body);
 
-        } catch (HttpClientErrorException ex) {
+/*        } catch (HttpClientErrorException ex) {
 
             // log error:
             log.error(ex.getMessage());
             body = new Message("Login", ex.getMessage(), ex.getStatusCode().value(), false);
 
             return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }
+        }*/
 
     }
 

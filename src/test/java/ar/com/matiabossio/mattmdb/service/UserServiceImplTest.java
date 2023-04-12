@@ -2,7 +2,9 @@ package ar.com.matiabossio.mattmdb.service;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.LoginFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
+import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.data.DummyMedia;
 import ar.com.matiabossio.mattmdb.data.DummyUsers;
@@ -359,14 +361,14 @@ class UserServiceImplTest {
     void loginUserService() {
 
         // GIVEN: Give a context to the test
-        User user = DummyUsers.getMariangeles();
+        LoginFromRequestDTO loginUserFromRequestDTO = new LoginFromRequestDTO(DummyUsers.getMariangeles().getEmail(), DummyUsers.getMariangeles().getPassword());
 
         // WHEN: When I want to run the test
 
         // Mock findByEmail:
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(DummyUsers.getMariangeles()));
+        when(userRepository.findByEmail(loginUserFromRequestDTO.getEmail())).thenReturn(Optional.of(DummyUsers.getMariangeles()));
 
-        userService.loginUserService(user);
+        userService.loginUserService(loginUserFromRequestDTO);
 
         // THEN: Validate that what is happening returns the expected result
         ArgumentCaptor<String> emailArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -378,7 +380,7 @@ class UserServiceImplTest {
         String emailCaptor = emailArgumentCaptor.getValue();
 
         // Check that the user received in the findByEmail method of the repository is the same that it is passed in userService.loginUserService():
-        assertThat(emailCaptor).isEqualTo(user.getEmail());
+        assertThat(emailCaptor).isEqualTo(loginUserFromRequestDTO.getEmail());
 
         verify(userRepository).findByEmail("mariangeles@mail.com");
 
@@ -397,7 +399,8 @@ class UserServiceImplTest {
 
         // WHEN & THEN user not found:
 
-        User userWrongEmail = DummyUsers.getMariangeles();
+        LoginFromRequestDTO userWrongEmail = new LoginFromRequestDTO(DummyUsers.getMariangeles().getEmail(), DummyUsers.getMariangeles().getPassword());
+
         userWrongEmail.setEmail("mariangele@mail.com");
 
         /* check:
@@ -421,7 +424,7 @@ class UserServiceImplTest {
             3) the message contains "check your password"
          */
 
-        User userWrongPw = DummyUsers.getMariangeles();
+        LoginFromRequestDTO userWrongPw = new LoginFromRequestDTO(DummyUsers.getMariangeles().getEmail(), DummyUsers.getMariangeles().getPassword());
         userWrongPw.setPassword("123");
 
         assertThatThrownBy(()->userService.loginUserService(userWrongPw))

@@ -3,8 +3,10 @@ package ar.com.matiabossio.mattmdb.service;
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
+import ar.com.matiabossio.mattmdb.business.dto.LoginFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.exception.NotFoundException;
 import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
@@ -138,6 +140,7 @@ public class UserServiceImpl implements IUserService{
 
 
     @Override
+    @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
     public void deleteUserService(Integer userIdFromRequest, PasswordFromRequestDTO passwordFromRequest) throws HttpClientErrorException {
 
        Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
@@ -157,10 +160,10 @@ public class UserServiceImpl implements IUserService{
 
 
     @Override
-    public User loginUserService(User userFromRequest) throws HttpClientErrorException {
+    public User loginUserService(LoginFromRequestDTO loginUserFromRequestDTO) throws HttpClientErrorException {
         // userFromRequest only has email & password
 
-        Optional<User> oFoundUser = this.getUserByEmailService(userFromRequest.getEmail());
+        Optional<User> oFoundUser = this.getUserByEmailService(loginUserFromRequestDTO.getEmail());
 
         if (oFoundUser.isEmpty()){
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials.");
@@ -168,7 +171,7 @@ public class UserServiceImpl implements IUserService{
 
         User foundUser = oFoundUser.get();
 
-        if (!foundUser.getPassword().equals(userFromRequest.getPassword())){
+        if (!foundUser.getPassword().equals(loginUserFromRequestDTO.getPassword())){
             throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
         }
 
