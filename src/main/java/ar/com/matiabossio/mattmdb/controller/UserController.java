@@ -175,17 +175,16 @@ public class UserController {
 
         User userFromRequest = userFromRequestMapper.dtoToEntity(userFromRequestDTO);
 
-            User updatedUser = this.userService.updateUserService(userId, userFromRequest);
+        User updatedUser = this.userService.updateUserService(userId, userFromRequest);
 
-            UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
+        UserDTO updatedUserDTO = this.userMapper.entityToDto(updatedUser);
 
-            Message body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
+        Message body = new Message("Update User", String.format("User %s updated", userFromRequest.getUsername()), 200, true, updatedUserDTO);
 
-            return ResponseEntity.ok(body);
+        return ResponseEntity.ok(body);
 
     }
 
-    // TODO CONTINUE FROM HERE
     /*************************************
      * DELETE  /api/v2/users/:userId    *
      *************************************/
@@ -203,7 +202,6 @@ public class UserController {
 
     }
 
-
     /*************************************
      *  LOGIN   /api/v2/users/login      *
      *************************************/
@@ -212,29 +210,16 @@ public class UserController {
     @ApiOperation(value = "Login User", notes = "This endpoint returns an existing user by providing the users email and password in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "post"})
     public ResponseEntity getUserByEmail(@Valid @RequestBody LoginFromRequestDTO loginUserFromRequestDTO){
 
-        // userFromRequest only has email & password
+        // loginUserFromRequestDTO only has email & password
 
-        Message body;
+        User foundUser = this.userService.loginUserService(loginUserFromRequestDTO);
 
-        //try {
+        // Get rid of user password:
+        UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
 
-            User foundUser = this.userService.loginUserService(loginUserFromRequestDTO);
+        Message body = new Message("Login", String.format("Welcome back %s!!", foundUser.getUsername()), 200, true, foundUserDTO);
 
-            // Get rid of user password:
-            UserDTO foundUserDTO = this.userMapper.entityToDto(foundUser);
-
-            body = new Message("Login", String.format("Welcome back %s!!", foundUser.getUsername()), 200, true, foundUserDTO);
-
-            return ResponseEntity.ok(body);
-
-/*        } catch (HttpClientErrorException ex) {
-
-            // log error:
-            log.error(ex.getMessage());
-            body = new Message("Login", ex.getMessage(), ex.getStatusCode().value(), false);
-
-            return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }*/
+        return ResponseEntity.ok(body);
 
     }
 
@@ -247,15 +232,7 @@ public class UserController {
     // if path params name equals the argument name we don't need to use name inside @PathVariable
     public ResponseEntity addFavorite(@PathVariable(name = "userId") Integer userId, @RequestBody ToggleFavoriteDTO favoriteFromRequestDTO) {
 
-        System.out.println("FAVORITE DTO-------" + favoriteFromRequestDTO);
-
         Media favoriteFromRequest = this.toggleFavoriteMapper.dtoToEntity(favoriteFromRequestDTO);
-
-        System.out.println("FAVORITE-------" + favoriteFromRequest);
-
-        Message body;
-
-        try {
 
             // Count favorite quantity:
             int preFavoriteCount = this.userService.countFavorites(userId);
@@ -273,7 +250,7 @@ public class UserController {
             // Added favorite message:
             if (preFavoriteCount < afterFavoriteCount) {
 
-                body = new Message("Add Favorite", String.format("%s added to your favorites", title), 201, true, updatedUserDTO);
+                Message body = new Message("Add Favorite", String.format("%s added to your favorites", title), 201, true, updatedUserDTO);
 
                 return ResponseEntity.status(HttpStatus.CREATED).body(body);
 
@@ -281,20 +258,10 @@ public class UserController {
 
             // Removed favorite message:
 
-                body = new Message("Remove Favorite", String.format("%s removed from favorites", title), 200, true, updatedUserDTO);
+                Message body = new Message("Remove Favorite", String.format("%s removed from favorites", title), 200, true, updatedUserDTO);
 
                 return ResponseEntity.ok(body);
             }
-
-
-        } catch (HttpClientErrorException ex) {
-
-            // log error:
-            log.error(ex.getMessage());
-            body = new Message("Add Favorite", ex.getMessage(), ex.getStatusCode().value(), false);
-
-            return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }
     }
 
 }

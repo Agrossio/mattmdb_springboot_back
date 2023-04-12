@@ -78,9 +78,7 @@ public class UserServiceImpl implements IUserService{
      If we want to return a List we have to use ".collect(Collectors.toList())"
     */
 
-
     }
-
 
     @Override
     public Optional<User> getUserByEmailService(String emailFromRequest) {
@@ -138,10 +136,12 @@ public class UserServiceImpl implements IUserService{
         return updatedUser;
     }
 
-
+    // OK
     @Override
     @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
     public void deleteUserService(Integer userIdFromRequest, PasswordFromRequestDTO passwordFromRequest) throws HttpClientErrorException {
+
+        // Another way to check if user exists is to use an "Optional":
 
        Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
 
@@ -158,40 +158,30 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-
+    // OK
     @Override
     public User loginUserService(LoginFromRequestDTO loginUserFromRequestDTO) throws HttpClientErrorException {
-        // userFromRequest only has email & password
+        // LoginUserFromRequest only has email & password
 
-        Optional<User> oFoundUser = this.getUserByEmailService(loginUserFromRequestDTO.getEmail());
+        User foundUser = this.getUserByEmailService(loginUserFromRequestDTO.getEmail()).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials."));
 
-        if (oFoundUser.isEmpty()){
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials.");
+        if (foundUser.getPassword().equals(loginUserFromRequestDTO.getPassword())){
+            return foundUser;
         }
 
-        User foundUser = oFoundUser.get();
+        throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
 
-        if (!foundUser.getPassword().equals(loginUserFromRequestDTO.getPassword())){
-            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
-        }
-
-        return foundUser;
     }
 
+    // OK
     @Override
     public User addTofavorites(int userId, Media favorite) {
 
-            Optional<User> oFoundUser = this.userRepository.findById(userId);
+            User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId)));
+
+
             Optional<Media> oFavoriteToAdd = this.mediaRepository.findById(favorite.getMediaId());
             User updatedUser;
-
-            if (oFoundUser.isEmpty()) {
-                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
-            }
-
-            User foundUser = oFoundUser.get();
-
-            // TODO validate token previous to this:
 
             // If the media is not in the media Table, add it to the DB:
             if (oFavoriteToAdd.isEmpty()) {
@@ -226,13 +216,9 @@ public class UserServiceImpl implements IUserService{
     @Override
     public int countFavorites(int userId) {
 
-        Optional<User> oFoundUser = this.userRepository.findById(userId);
+        User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId)));
 
-        if (oFoundUser.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
-        }
-
-        return oFoundUser.get().getFavorites().size();
+        return foundUser.getFavorites().size();
 
     }
 

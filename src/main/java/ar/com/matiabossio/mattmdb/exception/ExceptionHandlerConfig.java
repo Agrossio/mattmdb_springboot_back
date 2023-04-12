@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.method.HandlerMethod;
 
+import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,22 @@ public class ExceptionHandlerConfig {
         body = new Message("Client Error", httpClientErrorException.getMessage(), httpClientErrorException.getStatusCode().value(), false);
 
         return ResponseEntity.status(httpClientErrorException.getStatusCode()).body(body);
+    }
+
+    /*************************************
+     *     503 - Service Unavailable     *
+     *************************************/
+    @ExceptionHandler(ConnectException.class)
+    public ResponseEntity<Message> handleConnectException(ConnectException connectException, HandlerMethod handlerMethod){
+
+        Message body;
+
+        // log error:
+        log.warn(connectException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
+
+        body = new Message("Server Error", "DB Connection Error", 503, false);
+
+        return ResponseEntity.status(503).body(body);
     }
 
 }
