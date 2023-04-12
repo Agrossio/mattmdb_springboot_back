@@ -2,6 +2,7 @@ package ar.com.matiabossio.mattmdb.controller;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.ToggleFavoriteDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
@@ -195,33 +196,14 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ApiOperation(value = "Delete User", notes = "This endpoint deletes an existing user by providing the userId in the url and the user to delete in the body of the request (it must include the password), if user doesn't exist it returns a 404 not found status. It also validates if the provided password is the one stored in the user account.", tags = {"user", "delete"})
     // if path params name equals the argument name we don't need to use name inside @PathVariable
-    public ResponseEntity deleteUser(@PathVariable(name = "userId") Integer userId, @RequestBody User userFromRequest) {
+    public ResponseEntity deleteUser(@PathVariable(name = "userId") Integer userId, @Valid @RequestBody PasswordFromRequestDTO passwordFromRequestDTO) {
 
-        Message body;
+        this.userService.deleteUserService(userId, passwordFromRequestDTO);
 
-        System.out.println("DELETE BODY ------------------" + userFromRequest);
+        Message body = new Message("Delete User", String.format("User %s deleted OK", userId), 200, true, String.format("Deleted user with ID: %s", userId));
 
-        try {
+        return ResponseEntity.ok(body);
 
-            this.userService.deleteUserService(userId, userFromRequest);
-
-            // Get rid of user password:
-            //UserDTO deletedUserDTO = this.userMapper.entityToDto(deletedUser);
-
-            userFromRequest.setPassword("");
-
-            body = new Message("Delete User", String.format("User %s deleted OK", userFromRequest.getUsername()), 200, true, userFromRequest);
-
-            return ResponseEntity.ok(body);
-
-        } catch (HttpClientErrorException ex) {
-
-            // log error:
-            log.error(ex.getMessage());
-            body = new Message("Delete User", ex.getMessage(), ex.getStatusCode().value(), false);
-
-            return ResponseEntity.status(ex.getStatusCode()).body(body);
-        }
     }
 
 

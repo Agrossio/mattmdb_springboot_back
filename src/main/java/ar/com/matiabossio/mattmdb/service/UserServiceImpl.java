@@ -3,6 +3,7 @@ package ar.com.matiabossio.mattmdb.service;
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
+import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.exception.NotFoundException;
@@ -137,7 +138,7 @@ public class UserServiceImpl implements IUserService{
 
 
     @Override
-    public void deleteUserService(Integer userIdFromRequest, User userFromRequest) throws HttpClientErrorException {
+    public void deleteUserService(Integer userIdFromRequest, PasswordFromRequestDTO passwordFromRequest) throws HttpClientErrorException {
 
        Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
 
@@ -145,7 +146,7 @@ public class UserServiceImpl implements IUserService{
            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userIdFromRequest));
        } else {
            User foundUser = oFoundUser.get();
-           if (foundUser.getPassword().equals(userFromRequest.getPassword())){
+           if (foundUser.getPassword().equals(passwordFromRequest.getPassword())){
                this.userRepository.delete(foundUser);
            } else {
                throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please, check your password.");
