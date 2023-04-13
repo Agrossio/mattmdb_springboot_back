@@ -2,6 +2,7 @@ package ar.com.matiabossio.mattmdb.exception;
 
 import ar.com.matiabossio.mattmdb.util.Message;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -100,17 +101,30 @@ public class ExceptionHandlerConfig {
     }
 
     /*************************************
-     *     503 - Service Unavailable     *
+     *        500 - Server Error         *
      *************************************/
-    @ExceptionHandler(ConnectException.class)
-    public ResponseEntity<Message> handleConnectException(ConnectException connectException, HandlerMethod handlerMethod){
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Message> handleRuntimeException(RuntimeException runtimeException, HandlerMethod handlerMethod){
 
         Message body;
 
         // log error:
-        log.warn(connectException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
+        log.warn(runtimeException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
 
-        body = new Message("Server Error", "DB Connection Error", 503, false);
+        body = new Message("Server Error", runtimeException.getMessage(), 500, false);
+
+        return ResponseEntity.status(500).body(body);
+    }
+
+    @ExceptionHandler(JDBCConnectionException.class)
+    public ResponseEntity<Message> handleJDBCConnectionException(JDBCConnectionException jdbcConnectionException, HandlerMethod handlerMethod){
+
+        Message body;
+
+        // log error:
+        log.warn(jdbcConnectionException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
+
+        body = new Message("DB Connection Error", jdbcConnectionException.getMessage(), 503, false);
 
         return ResponseEntity.status(503).body(body);
     }

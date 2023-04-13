@@ -28,7 +28,7 @@ import java.util.*;
         En el controlador se hacen las validaciones de tipo de datos
         En el servicio las de lógica de negocio.
 
-        Todas las excepciones hay que mandarlas al controlador asi enviamos las bad request.
+        Todas las excepciones hay que mandarlas al controlador asi enviamos los mensajes correspondientes.
 
         Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
      */

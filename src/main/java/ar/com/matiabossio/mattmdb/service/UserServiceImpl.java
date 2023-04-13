@@ -11,6 +11,7 @@ import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.exception.NotFoundException;
 import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import javax.transaction.Transactional;
 import java.sql.SQLDataException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,10 +58,17 @@ public class UserServiceImpl implements IUserService{
             throw new DataIntegrityViolationException(String.format("Username %s already in use.", userFromRequest.getUsername()));
         }
 
-        // save works as saveOrCreate:
-        User createdUser = this.userRepository.save(userFromRequest);
+        try {
 
-        return createdUser;
+            // save works as saveOrCreate:
+            User createdUser = this.userRepository.save(userFromRequest);
+
+            return createdUser;
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     // OK
@@ -68,9 +77,23 @@ public class UserServiceImpl implements IUserService{
 
         if (userId == null) throw new RuntimeException("must provide a userId");
 
+        try {
         User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
 
         return foundUser;
+
+        } catch (RuntimeException e) {
+
+            if (e instanceof NotFoundException) {
+                throw new NotFoundException(String.format("User %s not found!", userId));
+            } else if (e instanceof JDBCConnectionException) {
+
+                throw new JDBCConnectionException("Database Unavailable", new SQLException("Could not connect que DB"));
+            }
+
+            throw new RuntimeException(e);
+
+        }
 
 
     /*
@@ -105,8 +128,6 @@ public class UserServiceImpl implements IUserService{
         return exists;
 
     }
-
-
 
     // OK
     @Override
