@@ -12,6 +12,7 @@ import ar.com.matiabossio.mattmdb.service.UserServiceImpl;
 import ar.com.matiabossio.mattmdb.util.Message;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,8 +38,9 @@ import java.util.*;
 @CrossOrigin("*")                  // allows requests from all origins
 @RestController                    // makes this class a RestController
 @RequestMapping("/users")       // makes "/users" the root URL for this controller
+@RequiredArgsConstructor
 @Slf4j
-@Api(tags = "User Controller", description = "Allowed actios for the User Entity")
+@Api(tags = "User Controller", description = "Allowed actions for the User Entity")
 public class UserController {
     private final IUserMapper userMapper;    // set it as final to force me to add it to the constructor
     private final IUserFromRequestMapper userFromRequestMapper;
@@ -46,14 +48,14 @@ public class UserController {
     private final IMediaMapper mediaMapper;
     private final IToggleFavoriteMapper toggleFavoriteMapper;
 
-    // IMPORTANT: always inject the interface (not the class), but the class hass to be decorated with @Bean/Component/Service/Repository/Controller/Etc
-    public UserController(IUserMapper userMapper, IUserFromRequestMapper userFromRequestMapper, UserServiceImpl userService, IMediaMapper mediaMapper, IToggleFavoriteMapper toggleFavoriteMapper) {
+    // IMPORTANT: always inject the interface (not the class), but the class has to be decorated with @Bean/Component/Service/Repository/Controller/Etc
+/*    public UserController(IUserMapper userMapper, IUserFromRequestMapper userFromRequestMapper, UserServiceImpl userService, IMediaMapper mediaMapper, IToggleFavoriteMapper toggleFavoriteMapper) {
         this.userMapper = userMapper;
         this.userFromRequestMapper = userFromRequestMapper;
         this.userService = userService;
         this.mediaMapper = mediaMapper;
         this.toggleFavoriteMapper = toggleFavoriteMapper;
-    }
+    }*/
 
     /*************************************
      *            /api/v2/users          *

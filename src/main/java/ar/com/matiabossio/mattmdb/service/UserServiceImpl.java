@@ -43,11 +43,12 @@ public class UserServiceImpl implements IUserService{
     public List<User> getUsersService() {
 
         // findAll from the CRUD repository returns an iterable, so I need to cast it:
-        return (List<User>) this.userRepository.findAll();
+        return this.userRepository.findAll();
     }
 
     // OK
     @Override
+    @Transactional
     public User createUserService(User userFromRequest) throws DataIntegrityViolationException {
 
         if (userExists(userFromRequest.getEmail())){
@@ -75,25 +76,19 @@ public class UserServiceImpl implements IUserService{
     @Override
     public User getUserByIdService(Integer userId) throws NotFoundException {
 
-        if (userId == null) throw new RuntimeException("must provide a userId");
+        if (userId == null) throw new DataIntegrityViolationException("must provide a userId");
+
+        User foundUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
 
         try {
-        User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
-
-        return foundUser;
-
+            return foundUser;
         } catch (RuntimeException e) {
-
-            if (e instanceof NotFoundException) {
-                throw new NotFoundException(String.format("User %s not found!", userId));
-            } else if (e instanceof JDBCConnectionException) {
-
-                throw new JDBCConnectionException("Database Unavailable", new SQLException("Could not connect que DB"));
-            }
-
-            throw new RuntimeException(e);
-
-        }
+            //if (e instanceof JDBCConnectionException) {
+                throw new JDBCConnectionException(e.getMessage(), new SQLException());
+            //} else {
+        }/* catch (RuntimeException e2) {
+            throw new RuntimeException(e2);
+        }*/
 
 
     /*
@@ -132,7 +127,7 @@ public class UserServiceImpl implements IUserService{
     // OK
     @Override
     @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
-    public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException{
+    public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException {
 
         // Search user in the DB (to get it's userId & validate password):
         User userToUpdate = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userId)));
@@ -154,7 +149,16 @@ public class UserServiceImpl implements IUserService{
         // Update user in th DB (save works as updateOrCreate).
         User updatedUser = this.userRepository.save(userToUpdate);
 
-        return updatedUser;
+        try {
+            return updatedUser;
+        } catch (JDBCConnectionException e) {
+           // if (e instanceof JDBCConnectionException) {
+                throw new JDBCConnectionException("Database Unavailable", new SQLException());
+           // } else {
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // OK
