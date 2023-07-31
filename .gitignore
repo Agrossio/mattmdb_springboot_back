@@ -41,4 +41,6 @@ build/
 ### SSL File ###
 src/main/resources/keypair/keystore.p12
 
+### Docker ###
 envs.txt
+
