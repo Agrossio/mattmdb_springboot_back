@@ -2,33 +2,40 @@ package ar.com.matiabossio.mattmdb.exception;
 
 import ar.com.matiabossio.mattmdb.util.Message;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.method.HandlerMethod;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
 @Slf4j
-public class ExceptionHandlerConfig {
+public class ApiExceptionHandler {
 
     /*************************************
      *         400 - Bad Request         *
      *************************************/
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+            org.springframework.dao.DuplicateKeyException.class,
+            org.springframework.web.HttpRequestMethodNotSupportedException.class,
+            org.springframework.web.bind.MethodArgumentNotValidException.class,
+            org.springframework.web.bind.MissingRequestHeaderException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+            org.springframework.http.converter.HttpMessageNotReadableException.class
+    })
     public ResponseEntity<Message> handleArgumentNotValidException(MethodArgumentNotValidException notValidEx, HandlerMethod handlerMethod){
-
-        Message body;
 
         BindingResult result = notValidEx.getBindingResult();
 
@@ -39,8 +46,7 @@ public class ExceptionHandlerConfig {
 
         });
 
-
-        body = new Message("Validations", "Validation Error", 400, false, validations);
+        Message body = new Message("Validations", "Validation Error", 400, false, validations);
 
         return ResponseEntity.badRequest().body(body);
     }
@@ -96,6 +102,36 @@ public class ExceptionHandlerConfig {
         body = new Message("Client Error", httpClientErrorException.getMessage(), httpClientErrorException.getStatusCode().value(), false);
 
         return ResponseEntity.status(httpClientErrorException.getStatusCode()).body(body);
+    }
+
+    /*************************************
+     *        5XX - Server Error         *
+     *************************************/
+
+    @ExceptionHandler(JDBCConnectionException.class)
+    public ResponseEntity<Message> handleJDBCConnectionException(JDBCConnectionException jdbcConnectionException, HandlerMethod handlerMethod){
+
+        Message body;
+
+        // log error:
+        log.error(jdbcConnectionException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
+
+        body = new Message("DB Connection Error", jdbcConnectionException.getMessage(), 503, false);
+
+        return ResponseEntity.status(503).body(body);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Message> handleRuntimeException(RuntimeException runtimeException, HandlerMethod handlerMethod){
+
+        Message body;
+
+        // log error:
+        log.error(runtimeException.getMessage() + " Error calling: " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName() + "().");
+
+        body = new Message("Server Error", runtimeException.getMessage(), 500, false);
+
+        return ResponseEntity.status(500).body(body);
     }
 
 }

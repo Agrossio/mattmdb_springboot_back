@@ -3,12 +3,15 @@ package ar.com.matiabossio.mattmdb.service;
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
 
+import ar.com.matiabossio.mattmdb.business.dto.LoginFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.mapper.IUserMapper;
 import ar.com.matiabossio.mattmdb.exception.NotFoundException;
 import ar.com.matiabossio.mattmdb.repository.IMediaRepository;
 import ar.com.matiabossio.mattmdb.repository.IUserRepository;
+import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import javax.transaction.Transactional;
 import java.sql.SQLDataException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,11 +43,12 @@ public class UserServiceImpl implements IUserService{
     public List<User> getUsersService() {
 
         // findAll from the CRUD repository returns an iterable, so I need to cast it:
-        return (List<User>) this.userRepository.findAll();
+        return this.userRepository.findAll();
     }
 
     // OK
     @Override
+    @Transactional
     public User createUserService(User userFromRequest) throws DataIntegrityViolationException {
 
         if (userExists(userFromRequest.getEmail())){
@@ -54,21 +59,36 @@ public class UserServiceImpl implements IUserService{
             throw new DataIntegrityViolationException(String.format("Username %s already in use.", userFromRequest.getUsername()));
         }
 
-        // save works as saveOrCreate:
-        User createdUser = this.userRepository.save(userFromRequest);
+        try {
 
-        return createdUser;
+            // save works as saveOrCreate:
+            User createdUser = this.userRepository.save(userFromRequest);
+
+            return createdUser;
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     // OK
     @Override
     public User getUserByIdService(Integer userId) throws NotFoundException {
 
-        if (userId == null) throw new RuntimeException("must provide a userId");
+        if (userId == null) throw new DataIntegrityViolationException("must provide a userId");
 
-        User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
+        User foundUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found!", userId)));
 
-        return foundUser;
+        try {
+            return foundUser;
+        } catch (RuntimeException e) {
+            //if (e instanceof JDBCConnectionException) {
+                throw new JDBCConnectionException(e.getMessage(), new SQLException());
+            //} else {
+        }/* catch (RuntimeException e2) {
+            throw new RuntimeException(e2);
+        }*/
 
 
     /*
@@ -76,9 +96,7 @@ public class UserServiceImpl implements IUserService{
      If we want to return a List we have to use ".collect(Collectors.toList())"
     */
 
-
     }
-
 
     @Override
     public Optional<User> getUserByEmailService(String emailFromRequest) {
@@ -106,12 +124,10 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-
-
     // OK
     @Override
     @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
-    public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException{
+    public User updateUserService(int userId, User userFromRequest) throws HttpClientErrorException {
 
         // Search user in the DB (to get it's userId & validate password):
         User userToUpdate = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s doesn't exist.", userId)));
@@ -133,12 +149,24 @@ public class UserServiceImpl implements IUserService{
         // Update user in th DB (save works as updateOrCreate).
         User updatedUser = this.userRepository.save(userToUpdate);
 
-        return updatedUser;
+        try {
+            return updatedUser;
+        } catch (JDBCConnectionException e) {
+           // if (e instanceof JDBCConnectionException) {
+                throw new JDBCConnectionException("Database Unavailable", new SQLException());
+           // } else {
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-
+    // OK
     @Override
+    @Transactional      // takes a snapshot of the DB before writing and if an error occurs it makes a rollback
     public void deleteUserService(Integer userIdFromRequest, PasswordFromRequestDTO passwordFromRequest) throws HttpClientErrorException {
+
+        // Another way to check if user exists is to use an "Optional":
 
        Optional<User> oFoundUser = this.userRepository.findById(userIdFromRequest);
 
@@ -155,40 +183,30 @@ public class UserServiceImpl implements IUserService{
 
     }
 
-
+    // OK
     @Override
-    public User loginUserService(User userFromRequest) throws HttpClientErrorException {
-        // userFromRequest only has email & password
+    public User loginUserService(LoginFromRequestDTO loginUserFromRequestDTO) throws HttpClientErrorException {
+        // LoginUserFromRequest only has email & password
 
-        Optional<User> oFoundUser = this.getUserByEmailService(userFromRequest.getEmail());
+        User foundUser = this.getUserByEmailService(loginUserFromRequestDTO.getEmail()).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials."));
 
-        if (oFoundUser.isEmpty()){
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Please check your credentials.");
+        if (foundUser.getPassword().equals(loginUserFromRequestDTO.getPassword())){
+            return foundUser;
         }
 
-        User foundUser = oFoundUser.get();
+        throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
 
-        if (!foundUser.getPassword().equals(userFromRequest.getPassword())){
-            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Please check your credentials.");
-        }
-
-        return foundUser;
     }
 
+    // OK
     @Override
     public User addTofavorites(int userId, Media favorite) {
 
-            Optional<User> oFoundUser = this.userRepository.findById(userId);
+            User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId)));
+
+
             Optional<Media> oFavoriteToAdd = this.mediaRepository.findById(favorite.getMediaId());
             User updatedUser;
-
-            if (oFoundUser.isEmpty()) {
-                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
-            }
-
-            User foundUser = oFoundUser.get();
-
-            // TODO validate token previous to this:
 
             // If the media is not in the media Table, add it to the DB:
             if (oFavoriteToAdd.isEmpty()) {
@@ -223,13 +241,9 @@ public class UserServiceImpl implements IUserService{
     @Override
     public int countFavorites(int userId) {
 
-        Optional<User> oFoundUser = this.userRepository.findById(userId);
+        User foundUser = this.userRepository.findById(userId).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId)));
 
-        if (oFoundUser.isEmpty()) {
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, String.format("User ID %s not found.", userId));
-        }
-
-        return oFoundUser.get().getFavorites().size();
+        return foundUser.getFavorites().size();
 
     }
 

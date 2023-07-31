@@ -30,7 +30,7 @@ import java.util.Optional;
 
         Todas las excepciones hay que mandarlas al controlador asi enviamos las bad request.
 
-        Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
+        Las inyecciones de la interfaz del servicio mejor hacerla declarándolas con el constructor que con @Autowired
      */
 
 //@CrossOrigin("http://localhost:4200") // allows requests from "http://localhost:4200"

@@ -2,8 +2,10 @@ package ar.com.matiabossio.mattmdb.service;
 
 import ar.com.matiabossio.mattmdb.business.domain.Media;
 import ar.com.matiabossio.mattmdb.business.domain.User;
+import ar.com.matiabossio.mattmdb.business.dto.LoginFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.PasswordFromRequestDTO;
 import ar.com.matiabossio.mattmdb.business.dto.UserDTO;
+import ar.com.matiabossio.mattmdb.business.dto.UserFromRequestDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,7 +20,7 @@ public interface IUserService {
     User createUserService(User userFromRequest);
     User updateUserService(int userId, User userFromRequest);
     void deleteUserService(Integer userIdFromRequest, PasswordFromRequestDTO passwordFromRequest);
-    User loginUserService(User userFromRequest);
+    User loginUserService(LoginFromRequestDTO loginUserFromRequestDTO);
     User addTofavorites(int userId, Media favorite);
     int countFavorites(int userId);
     // void removeFromFavorites(int userId, Media favorite);
