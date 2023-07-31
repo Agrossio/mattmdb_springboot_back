@@ -43,4 +43,6 @@ src/main/resources/keypair/keystore.p12
 
 ### Docker ###
 envs.txt
+docker-compose.yml
+Dockerfile
 
