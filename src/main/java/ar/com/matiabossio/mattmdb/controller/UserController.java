@@ -93,7 +93,7 @@ public class UserController {
 
         // example to send headers:
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Test Key 1", "Test Value 1");
+        headers.set("Test_Key_1", "Test_Value_1");
 
 
         // Validate userFromRequestDTO:
